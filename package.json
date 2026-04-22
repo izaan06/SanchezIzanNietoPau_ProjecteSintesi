@@ -1,0 +1,12 @@
+{
+  "name": "event-ai-manager",
+  "version": "1.0.0",
+  "description": "Projecte de síntesi d'IA per a gestió d'esdeveniments",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND,AI\" -c \"magenta,cyan,green\" \"cd backend && php artisan serve\" \"cd frontend && npm run dev\" \"cd ai_microservice && python app.py\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

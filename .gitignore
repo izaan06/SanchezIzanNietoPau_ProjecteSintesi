@@ -1,0 +1,36 @@
+# Dependency directories
+node_modules/
+vendor/
+.venv/
+env/
+venv/
+ENV/
+
+# Laravel specific
+.env
+.env.backup
+.env.production
+storage/*.key
+/public/storage
+/public/hot
+/storage/*.key
+/vendor
+
+# Vue specific
+dist/
+dist-ssr/
+*.local
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

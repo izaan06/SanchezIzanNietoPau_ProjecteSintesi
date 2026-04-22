@@ -1,0 +1,82 @@
+{
+	"info": {
+		"_postman_id": "laravel-sanctum-full",
+		"name": "Laravel Project FULL",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{ "name": "Register", "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Pau\",\n    \"email\": \"pau@exemple.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/register" } },
+				{ "name": "Login", "event": [ { "listen": "test", "script": { "exec": [ "var data = JSON.parse(responseBody);", "pm.collectionVariables.set(\"token\", data.access_token);" ], "type": "text/javascript" } } ], "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"email\": \"pau@exemple.com\",\n    \"password\": \"password123\"\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/login" } },
+				{ "name": "Me", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": "http://localhost:8000/api/me" } }
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "View Dashboard",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": "http://localhost:8000/api/dashboard"
+					}
+				}
+			]
+		},
+		{
+			"name": "Clients",
+			"item": [
+				{ "name": "List Clients", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": "http://localhost:8000/api/clients" } },
+				{ "name": "Create Client", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Clients de Prova\",\n    \"email\": \"prova@client.com\",\n    \"phone\": \"999888777\",\n    \"address\": \"Carrer de l'API, 1\"\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/clients" } }
+			]
+		},
+		{
+			"name": "Events",
+			"item": [
+				{ "name": "List Events", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": "http://localhost:8000/api/events" } },
+				{ "name": "Create Event", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Festa Major\",\n    \"date\": \"2026-08-15 22:00:00\",\n    \"location\": \"Plaça del Poble\",\n    \"type\": \"Festa\",\n    \"assistants\": 2000,\n    \"client_id\": 1\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/events" } },
+				{ "name": "Predict Event Cost (AI)", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"type\": \"wedding\",\n    \"assistants\": 250,\n    \"workers\": 15,\n    \"hours\": 10,\n    \"cost_per_hour\": 20.0\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/events/predict-cost" } }
+			]
+		},
+		{
+			"name": "Workers",
+			"item": [
+				{ "name": "List Workers", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": "http://localhost:8000/api/workers" } },
+				{ "name": "Create Worker", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"name\": \"Treballador 1\",\n    \"role\": \"Logística\",\n    \"cost_per_hour\": 15.75\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/workers" } }
+			]
+		},
+		{
+			"name": "Assignments",
+			"item": [
+				{ "name": "Assign Worker to Event", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"worker_id\": 1\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:8000/api/events/1/workers" } },
+				{ "name": "Remove Worker from Event", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "DELETE", "header": [ { "key": "Accept", "value": "application/json" } ], "url": "http://localhost:8000/api/events/1/workers/1" } },
+				{ "name": "List Workers in Event", "request": { "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] }, "method": "GET", "header": [ { "key": "Accept", "value": "application/json" } ], "url": "http://localhost:8000/api/events/1/workers" } }
+			]
+		},
+		{
+			"name": "Flask AI Direct",
+			"item": [
+				{ "name": "Predict Cost (Direct to Flask)", "request": { "auth": { "type": "noauth" }, "method": "POST", "header": [ { "key": "Accept", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{\n    \"type\": \"wedding\",\n    \"assistants\": 250,\n    \"workers\": 15,\n    \"hours\": 10,\n    \"cost_per_hour\": 20.0\n}", "options": { "raw": { "language": "json" } } }, "url": "http://localhost:5000/predict-cost" } }
+			]
+		}
+	],
+	"variable": [ { "key": "token", "value": "" } ]
+}
