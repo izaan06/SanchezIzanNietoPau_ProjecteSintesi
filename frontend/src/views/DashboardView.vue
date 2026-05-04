@@ -383,11 +383,14 @@ select:focus, input:focus {
 }
 
 .pred-value {
-  font-size: 2.5rem;
+  font-size: 2.2rem; /* Reducido ligeramente para mejor encaje */
   font-weight: 700;
-  background: -webkit-linear-gradient(0deg, #60a5fa, #c084fc);
+  background: linear-gradient(90deg, #60a5fa, #c084fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+  padding: 0.2rem 0; /* Espai extra per evitar retalls del degradat */
+  display: inline-block;
 }
 
 @keyframes fade-in {
