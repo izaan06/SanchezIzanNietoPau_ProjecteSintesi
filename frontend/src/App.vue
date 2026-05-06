@@ -31,6 +31,10 @@
   --glass-border: rgba(255, 255, 255, 0.05);
 }
 
+html {
+  font-size: 14px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

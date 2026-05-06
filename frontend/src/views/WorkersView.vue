@@ -2,40 +2,116 @@
   <div class="workers-view">
     <div class="header">
       <h2>Gestió de Personal</h2>
-      <button class="btn-primary">
+      <button @click="openCreateModal" class="btn-primary">
         <Plus class="icon-sm" /> Nou Treballador
       </button>
     </div>
 
-    <div class="table-responsive">
+    <!-- Modal Form -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="glass-card modal-content">
+        <h3>{{ isEditing ? 'Editar Treballador' : 'Nou Treballador' }}</h3>
+        
+        <form @submit.prevent="saveWorker" class="form-compact">
+          <div class="form-group">
+            <label>Vincular a un Usuari existent (Opcional)</label>
+            <select v-model="currentWorker.user_id">
+              <option :value="null">-- Cap (Sense compte d'usuari) --</option>
+              <option v-for="user in availableUsers" :key="user.id" :value="user.id">
+                {{ user.name }} ({{ user.email }})
+              </option>
+              <option v-if="isEditing && currentWorker.user" :value="currentWorker.user_id">
+                Usuari actual: {{ currentWorker.user.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nom Complet</label>
+              <input v-model="currentWorker.name" type="text" placeholder="Nom" required />
+            </div>
+            <div class="form-group">
+              <label>Rol Principal</label>
+              <input v-model="currentWorker.role" type="text" placeholder="Ex: Coordinadora" required />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Ubicació</label>
+              <input v-model="currentWorker.location" type="text" placeholder="Ciutat" />
+            </div>
+            <div class="form-group">
+              <label>IA Rating (1-5)</label>
+              <input v-model="currentWorker.rating" type="number" step="0.1" min="1" max="5" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Etiquetes Especialitat</label>
+              <input 
+                :value="currentWorker.specialization_tags?.join(', ')" 
+                @input="e => currentWorker.specialization_tags = e.target.value.split(',').map(t => t.trim())"
+                type="text" 
+                placeholder="Ex: wedding, party" 
+              />
+            </div>
+            <div class="form-group">
+              <label>Cost/h (€)</label>
+              <input v-model="currentWorker.cost_per_hour" type="number" step="0.01" required />
+            </div>
+          </div>
+
+          <div class="checkbox-group">
+            <input v-model="currentWorker.availability" type="checkbox" id="avail" />
+            <label for="avail">Disponible per esdeveniments</label>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" @click="closeModal" class="btn-secondary">Cancel·lar</button>
+            <button type="submit" class="btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading">Carregant treballadors...</div>
+    
+    <div v-else class="table-responsive">
       <table class="data-table">
         <thead>
           <tr>
             <th>ID</th>
+            <th>Usuari Vinculat</th>
             <th>Nom Complet</th>
             <th>Rol / Especialitat</th>
-            <th>Cost per Hora (€)</th>
+            <th>Cost/h</th>
             <th>Estat</th>
             <th>Accions</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Dades fictícies per a la presentació de disseny (a substituir per v-for) -->
-          <tr v-for="i in 6" :key="i">
-            <td>#{{ 200 + i }}</td>
-            <td class="primary-col">Treballador {{ i }}</td>
+          <tr v-for="worker in workers" :key="worker.id">
+            <td>#{{ worker.id }}</td>
             <td>
-              <span class="role-badge">{{ i % 2 === 0 ? 'Seguretat' : 'Logística' }}</span>
+              <span v-if="worker.user_id" class="user-link">
+                <UserCheck class="icon-xs" /> {{ worker.user_id }}
+              </span>
+              <span v-else class="user-none">Sense vincle</span>
             </td>
-            <td>{{ 15 + i }}.00 €/h</td>
+            <td class="primary-col">{{ worker.name }}</td>
+            <td><span class="role-badge">{{ worker.role }}</span></td>
+            <td>{{ worker.cost_per_hour }} €/h</td>
             <td>
-              <span class="status-badge" :class="i % 3 === 0 ? 'busy' : 'available'">
-                {{ i % 3 === 0 ? 'Assignat' : 'Disponible' }}
+              <span class="status-badge" :class="worker.availability ? 'available' : 'busy'">
+                {{ worker.availability ? 'Disponible' : 'Ocupat' }}
               </span>
             </td>
             <td class="actions-cell">
-              <button class="btn-icon edit"><Edit2 class="icon-sm" /></button>
-              <button class="btn-icon delete"><Trash2 class="icon-sm" /></button>
+              <button @click="editWorker(worker)" class="btn-icon edit"><Edit2 class="icon-sm" /></button>
+              <button @click="deleteWorker(worker.id)" class="btn-icon delete"><Trash2 class="icon-sm" /></button>
             </td>
           </tr>
         </tbody>
@@ -45,8 +121,90 @@
 </template>
 
 <script setup>
-import { Plus, Edit2, Trash2 } from 'lucide-vue-next'
-// Implementar la connexió amb api.get('/workers') aquí.
+import { ref, onMounted } from 'vue'
+import { Plus, Edit2, Trash2, UserCheck } from 'lucide-vue-next'
+import api from '../api/axios'
+
+const workers = ref([])
+const availableUsers = ref([])
+const loading = ref(true)
+const showModal = ref(false)
+const isEditing = ref(false)
+
+const currentWorker = ref({
+  id: null,
+  user_id: null,
+  name: '',
+  role: '',
+  cost_per_hour: 0,
+  availability: true
+})
+
+const fetchWorkers = async () => {
+  loading.value = true
+  try {
+    const res = await api.get('/workers')
+    workers.value = res.data
+  } catch (err) {
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchAvailableUsers = async () => {
+  try {
+    const res = await api.get('/workers/available-users')
+    availableUsers.value = res.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const openCreateModal = () => {
+  isEditing.value = false
+  currentWorker.value = { id: null, user_id: null, name: '', role: '', cost_per_hour: 0, availability: true }
+  fetchAvailableUsers()
+  showModal.value = true
+}
+
+const editWorker = (worker) => {
+  isEditing.value = true
+  currentWorker.value = { ...worker }
+  fetchAvailableUsers()
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+}
+
+const saveWorker = async () => {
+  try {
+    if (isEditing.value) {
+      await api.put(`/workers/${currentWorker.value.id}`, currentWorker.value)
+    } else {
+      await api.post('/workers', currentWorker.value)
+    }
+    fetchWorkers()
+    closeModal()
+  } catch (err) {
+    alert('Error al guardar el treballador')
+    console.error(err)
+  }
+}
+
+const deleteWorker = async (id) => {
+  if (!confirm('Segur que vols eliminar aquest treballador?')) return
+  try {
+    await api.delete(`/workers/${id}`)
+    fetchWorkers()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+onMounted(fetchWorkers)
 </script>
 
 <style scoped>
@@ -62,16 +220,86 @@ import { Plus, Edit2, Trash2 } from 'lucide-vue-next'
   align-items: center;
 }
 
-.header h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
 }
 
-.btn-primary {
+.modal-content {
+  background: #1e293b;
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  border-radius: 16px;
+  padding: 1.5rem;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: white;
+}
+
+.form-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-group input, .form-group select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.6rem;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.checkbox-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .table-responsive {
@@ -93,23 +321,6 @@ import { Plus, Edit2, Trash2 } from 'lucide-vue-next'
   border-bottom: 1px solid var(--border-color);
 }
 
-.data-table th {
-  background-color: rgba(15, 23, 42, 0.4);
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-}
-
-.data-table tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
-.data-table tr:last-child td { border-bottom: none; }
-
-.primary-col {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .role-badge {
   background-color: rgba(99, 102, 241, 0.15);
   color: var(--accent-primary);
@@ -119,20 +330,11 @@ import { Plus, Edit2, Trash2 } from 'lucide-vue-next'
   font-weight: 600;
 }
 
-.status-badge {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
 .status-badge.available { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
 .status-badge.busy { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
-.actions-cell {
-  display: flex;
-  gap: 0.5rem;
-}
+.user-link { color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
+.user-none { color: var(--text-muted); font-style: italic; font-size: 0.85rem; }
 
 .btn-icon {
   background: rgba(255, 255, 255, 0.05);
@@ -140,19 +342,18 @@ import { Plus, Edit2, Trash2 } from 'lucide-vue-next'
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
-  transition: all 0.2s ease;
   color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.btn-icon:hover {
-  transform: translateY(-2px);
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
-.btn-icon.edit:hover { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: #3b82f6; }
-.btn-icon.delete:hover { background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: #ef4444; }
-
+.icon-xs { width: 14px; height: 14px; }
 .icon-sm { width: 18px; height: 18px; }
 </style>

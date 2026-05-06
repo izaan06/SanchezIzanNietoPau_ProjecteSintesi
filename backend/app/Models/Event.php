@@ -18,12 +18,25 @@ class Event extends Model
         'assistants',
         'status',
         'client_id',
+        'estimated_cost',
+        'appointment_request_id',
+        'tasks',
     ];
 
     protected $casts = [
         'date' => 'datetime',
+        'end_date' => 'datetime',
         'assistants' => 'integer',
+        'tasks' => 'array',
     ];
+
+    /**
+     * Obtenir la sol·licitud original de la IA.
+     */
+    public function appointmentRequest()
+    {
+        return $this->belongsTo(AppointmentRequest::class);
+    }
 
     /**
      * Obtenir el client propietari de l'esdeveniment.

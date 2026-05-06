@@ -172,10 +172,26 @@ const handleLogin = async () => {
     });
 
     const token = response.data.token || response.data.access_token;
+    const user = response.data.user;
+    const role = user?.role;
     
     if (token) {
       localStorage.setItem('token', token);
-      router.push({ name: 'dashboard' });
+      if (role) {
+        localStorage.setItem('role', role);
+      }
+      if (user?.name) {
+        localStorage.setItem('userName', user.name);
+      }
+      
+      // Redirigir segons el rol
+      if (role === 'admin') {
+        router.push({ name: 'dashboard' });
+      } else if (role === 'worker') {
+        router.push({ name: 'worker-dashboard' });
+      } else {
+        router.push({ name: 'client-portal' });
+      }
     } else {
       errorMessage.value = 'El servidor no ha retornat cap token.';
     }

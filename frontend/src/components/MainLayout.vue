@@ -12,25 +12,84 @@
       <nav class="nav-menu">
         <div class="nav-group-label">MENÚ PRINCIPAL</div>
         
-        <router-link to="/" class="nav-item" exact-active-class="active">
-          <LayoutDashboard class="icon" />
-          <span>Dashboard</span>
-        </router-link>
-        
-        <router-link to="/events" class="nav-item" active-class="active">
-          <CalendarDays class="icon" />
-          <span>Esdeveniments</span>
-        </router-link>
+        <!-- Admin Links -->
+        <template v-if="userRole === 'admin'">
+          <router-link to="/" class="nav-item" exact-active-class="active">
+            <LayoutDashboard class="icon" />
+            <span>Dashboard Admin</span>
+          </router-link>
+          
+          <router-link to="/events" class="nav-item" active-class="active">
+            <CalendarDays class="icon" />
+            <span>Esdeveniments</span>
+          </router-link>
 
-        <router-link to="/clients" class="nav-item" active-class="active">
-          <Users class="icon" />
-          <span>Clients</span>
-        </router-link>
+          <router-link to="/calendar" class="nav-item" active-class="active">
+            <CalendarDays class="icon" />
+            <span>Calendari Mestre</span>
+          </router-link>
 
-        <router-link to="/workers" class="nav-item" active-class="active">
-          <Briefcase class="icon" />
-          <span>Treballadors</span>
-        </router-link>
+          <router-link to="/clients" class="nav-item" active-class="active">
+            <Users class="icon" />
+            <span>Clients</span>
+          </router-link>
+
+          <router-link to="/workers" class="nav-item" active-class="active">
+            <Briefcase class="icon" />
+            <span>Treballadors</span>
+          </router-link>
+
+          <router-link to="/users" class="nav-item" active-class="active">
+            <UserCog class="icon" />
+            <span>Usuaris</span>
+          </router-link>
+
+          <router-link to="/appointments" class="nav-item" active-class="active">
+            <Sparkles class="icon" />
+            <span>Sol·licituds IA</span>
+          </router-link>
+
+          <router-link to="/time-off" class="nav-item" active-class="active">
+            <CalendarDays class="icon" />
+            <span>Gestió de Vacances</span>
+          </router-link>
+        </template>
+
+        <!-- Worker Links -->
+        <template v-if="userRole === 'worker'">
+          <router-link to="/worker" class="nav-item" active-class="active">
+            <CalendarDays class="icon" />
+            <span>El meu Calendari</span>
+          </router-link>
+        </template>
+
+        <!-- Client Links -->
+        <template v-if="userRole === 'client'">
+          <router-link :to="{ name: 'client-portal', query: { tab: 'home' } }" class="nav-item" :class="{ active: $route.query.tab === 'home' || !$route.query.tab }">
+            <Home class="icon" />
+            <span>Inici</span>
+          </router-link>
+
+          <router-link :to="{ name: 'client-portal', query: { tab: 'form' } }" class="nav-item" :class="{ active: $route.query.tab === 'form' }">
+            <Sparkles class="icon" />
+            <span>Nova Sol·licitud</span>
+          </router-link>
+
+          <router-link :to="{ name: 'client-portal', query: { tab: 'status' } }" class="nav-item" :class="{ active: $route.query.tab === 'status' }">
+            <CalendarDays class="icon" />
+            <span>Les Meves Sol·licituds</span>
+          </router-link>
+
+          <router-link :to="{ name: 'client-portal', query: { tab: 'menus' } }" class="nav-item" :class="{ active: $route.query.tab === 'menus' }">
+            <Utensils class="icon" />
+            <span>Catàleg de Menús</span>
+          </router-link>
+
+          <router-link :to="{ name: 'client-portal', query: { tab: 'gallery' } }" class="nav-item" :class="{ active: $route.query.tab === 'gallery' }">
+            <Image class="icon" />
+            <span>Galeria d'Èxits</span>
+          </router-link>
+        </template>
       </nav>
 
       <div class="sidebar-footer">
@@ -51,14 +110,14 @@
         <div class="user-profile">
           <button class="notification-btn">
             <Bell class="icon-sm" />
-            <span class="badge">3</span>
+            <span class="badge">1</span>
           </button>
           <div class="avatar">
             <User class="icon-sm" />
           </div>
           <div class="user-info">
-            <span class="user-name">Administrador</span>
-            <span class="user-role">Admin</span>
+            <span class="user-name">{{ userName }}</span>
+            <span class="user-role">{{ roleLabel }}</span>
           </div>
         </div>
       </header>
@@ -76,7 +135,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { 
   LayoutDashboard, 
@@ -86,24 +145,45 @@ import {
   LogOut,
   Sparkles,
   User,
-  Bell
+  UserCog,
+  Bell,
+  Utensils,
+  Image,
+  Home
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 
+const userRole = ref(localStorage.getItem('role') || 'client')
+const userName = ref(localStorage.getItem('userName') || 'Usuari')
+
+const roleLabel = computed(() => {
+  switch (userRole.value) {
+    case 'admin': return 'Administrador'
+    case 'worker': return 'Treballador'
+    case 'client': return 'Client'
+    default: return 'Usuari'
+  }
+})
+
 const currentPageTitle = computed(() => {
   switch (route.name) {
-    case 'dashboard': return 'Resum i Panell de Control'
+    case 'dashboard': return 'Panell de Control Admin'
+    case 'worker-dashboard': return 'El meu Espai de Treball'
+    case 'client-portal': return 'Portal del Client'
     case 'events': return 'Gestió d\'Esdeveniments'
     case 'clients': return 'Cartera de Clients'
     case 'workers': return 'Gestió de Personal'
+    case 'admin-calendar': return 'Calendari Mestre'
     default: return 'EventAI Manager'
   }
 })
 
 const handleLogout = () => {
   localStorage.removeItem('token')
+  localStorage.removeItem('role')
+  localStorage.removeItem('userName')
   router.push({ name: 'login' })
 }
 </script>
@@ -168,6 +248,7 @@ const handleLogout = () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: auto;
 }
 
 .nav-group-label {

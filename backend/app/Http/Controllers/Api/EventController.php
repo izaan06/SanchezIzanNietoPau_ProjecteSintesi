@@ -14,7 +14,9 @@ class EventController extends Controller
      */
     public function index(): JsonResponse
     {
-        $events = Event::with('client')->get();
+        $events = Event::with(['client', 'appointmentRequest'])
+            ->latest()
+            ->get();
         return response()->json($events);
     }
 
@@ -29,15 +31,16 @@ class EventController extends Controller
             'location' => 'required|string|max:255',
             'type' => 'required|string|max:255',
             'assistants' => 'nullable|integer|min:0',
-            'status' => 'nullable|string|in:pendent,realitzat,cancel·lat',
+            'status' => 'nullable|string|in:pending,confirmed,planning,in_progress,completed,cancelled',
             'client_id' => 'required|exists:clients,id',
+            'tasks' => 'nullable|array',
         ]);
 
         $event = Event::create($validated);
 
         return response()->json([
             'message' => 'Esdeveniment creat correctament',
-            'data' => $event->load('client')
+            'data' => $event->load(['client', 'appointmentRequest'])
         ], 201);
     }
 
@@ -46,7 +49,7 @@ class EventController extends Controller
      */
     public function show(Event $event): JsonResponse
     {
-        return response()->json($event->load('client'));
+        return response()->json($event->load(['client', 'appointmentRequest']));
     }
 
     /**
@@ -60,15 +63,16 @@ class EventController extends Controller
             'location' => 'sometimes|required|string|max:255',
             'type' => 'sometimes|required|string|max:255',
             'assistants' => 'nullable|integer|min:0',
-            'status' => 'nullable|string|in:pendent,realitzat,cancel·lat',
+            'status' => 'nullable|string|in:pending,confirmed,planning,in_progress,completed,cancelled',
             'client_id' => 'sometimes|required|exists:clients,id',
+            'tasks' => 'nullable|array',
         ]);
 
         $event->update($validated);
 
         return response()->json([
             'message' => 'Esdeveniment actualitzat correctament',
-            'data' => $event->load('client')
+            'data' => $event->load(['client', 'appointmentRequest'])
         ]);
     }
 
@@ -77,10 +81,15 @@ class EventController extends Controller
      */
     public function destroy(Event $event): JsonResponse
     {
+        // Si té una sol·licitud vinculada, la eliminem també
+        if ($event->appointment_request_id) {
+            $event->appointmentRequest()->delete();
+        }
+
         $event->delete();
 
         return response()->json([
-            'message' => 'Esdeveniment eliminat correctament'
+            'message' => 'Esdeveniment i sol·licitud eliminats correctament'
         ]);
     }
 }
