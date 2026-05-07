@@ -270,7 +270,7 @@
                 </div>
               </section>
 
-              <section class="detail-section mt-4">
+              <section class="detail-section mt-section">
                 <h3 class="section-title">Client i Serveis</h3>
                 <div class="info-group-card">
                   <div class="client-mini">
@@ -722,6 +722,26 @@ const truncate = (text, length) => {
   padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 14px;
 }
 
+.task-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.task-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+
+.task-checkbox .completed {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
 /* DASHBOARD COLUMNA DRETA (REDISEÑADA) */
 .ai-card { 
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(99, 102, 241, 0.02));
@@ -738,14 +758,14 @@ const truncate = (text, length) => {
   margin-bottom: 2.5rem;
   border: 1px solid rgba(255,255,255,0.05);
 }
-.fin-main { margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 1.5rem; }
-.fin-main .label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem; display: block; }
-.fin-main .value { font-size: 2.8rem; font-weight: 900; color: #10b981; line-height: 1; }
+.fin-main { margin-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 2.5rem; }
+.fin-main .label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 1.25rem; display: block; }
+.fin-main .value { font-size: 3.5rem; font-weight: 900; color: #10b981; line-height: 1.2; }
 
-.fin-list { display: flex; flex-direction: column; gap: 1rem; }
+.fin-list { display: flex; flex-direction: column; gap: 1.5rem; }
 .fin-item { display: flex; justify-content: space-between; align-items: center; font-size: 1rem; }
 .fin-item .label { color: var(--text-muted); font-weight: 600; }
-.fin-item .value { color: #fff; font-weight: 800; font-size: 1.1rem; }
+.fin-item .value { color: #fff; font-weight: 800; font-size: 1.2rem; }
 
 .recs-label { font-size: 0.9rem; font-weight: 800; color: #fff; margin-bottom: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .recs-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
@@ -789,16 +809,58 @@ const truncate = (text, length) => {
 /* Dashboard Generics */
 .modal-title { font-size: 2.2rem; font-weight: 900; color: #fff; letter-spacing: -0.04em; }
 .modal-subtitle { display: flex; gap: 1.5rem; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; }
-.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
-.section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 1rem; }
-.section-title::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.05); }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+.section-title { 
+  font-size: 0.85rem; 
+  text-transform: uppercase; 
+  letter-spacing: 0.15em; 
+  color: var(--text-muted); 
+  margin-bottom: 2.5rem; 
+  font-weight: 800; 
+  display: flex; 
+  align-items: center; 
+  gap: 1.5rem; 
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
 
 /* Status Selector */
-.status-selector { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.status-selector { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 4.5rem; }
 .status-opt {
-  padding: 0.6rem 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
-  background: rgba(255,255,255,0.02); color: var(--text-muted); font-weight: 700; font-size: 0.8rem;
-  cursor: pointer; transition: all 0.2s;
+  padding: 0.8rem 1.5rem; 
+  border-radius: 14px; 
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03); 
+  color: var(--text-muted); 
+  font-weight: 700; 
+  font-size: 0.85rem;
+  cursor: pointer; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-opt:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.status-opt.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.5);
+}
+
+.empty-tasks {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.mt-section {
+  margin-top: 5rem !important;
 }
 
 @media (max-width: 900px) {

@@ -14,7 +14,7 @@ class WorkerController extends Controller
      */
     public function index(): JsonResponse
     {
-        $workers = Worker::all();
+        $workers = Worker::with('events')->get();
         return response()->json($workers);
     }
 

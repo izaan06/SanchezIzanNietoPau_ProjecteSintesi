@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\Route;
 // --- Rutes públiques ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
-Route::post('/appointment-request', [AppointmentController::class, 'store']);
 
 // --- Rutes protegides (qualsevol usuari autenticat) ---
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me',     [AuthController::class, 'me']);
     Route::post('/logout',[AuthController::class, 'logout']);
     Route::get('/my-appointments', [AppointmentController::class, 'myRequests']);
+    Route::post('/appointment-request', [AppointmentController::class, 'store']);
 
     // --- Rutes de TREBALLADOR ---
     Route::middleware('role:worker,admin')->group(function () {
@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/workers/available-users', [WorkerController::class, 'getAvailableUsers']);
         Route::apiResource('workers', WorkerController::class);
 
+        Route::get('/events/{event}/workers',           [EventWorkerController::class, 'getWorkers']);
         Route::post('/events/{event}/workers',          [EventWorkerController::class, 'assignWorker']);
         Route::delete('/events/{event}/workers/{worker}',[EventWorkerController::class, 'removeWorker']);
 

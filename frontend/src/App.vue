@@ -78,13 +78,18 @@ body {
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  font-weight: 600;
+  padding: 0.85rem 1.75rem;
+  border-radius: 14px;
+  font-weight: 700;
   font-family: 'Outfit', sans-serif;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  letter-spacing: 0.02em;
 }
 
 .btn-primary:hover {
@@ -101,8 +106,9 @@ body {
   display: none;
 }
 
-* {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+/* Estils per als dropdowns (select/option) en dark mode */
+select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 </style>

@@ -35,6 +35,13 @@ class EventWorkerController extends Controller
         ]);
     }
 
+    public function getWorkers(Event $event): JsonResponse
+    {
+        return response()->json([
+            'data' => $event->workers
+        ]);
+    }
+
     /**
      * Desassignar un treballador d'un esdeveniment.
      */

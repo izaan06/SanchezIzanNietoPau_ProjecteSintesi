@@ -105,8 +105,11 @@
             <td><span class="role-badge">{{ worker.role }}</span></td>
             <td>{{ worker.cost_per_hour }} €/h</td>
             <td>
-              <span class="status-badge" :class="worker.availability ? 'available' : 'busy'">
-                {{ worker.availability ? 'Disponible' : 'Ocupat' }}
+              <span 
+                class="status-badge" 
+                :class="isBusyToday(worker) ? 'busy' : 'available'"
+              >
+                {{ isBusyToday(worker) ? 'Ocupat' : 'Disponible' }}
               </span>
             </td>
             <td class="actions-cell">
@@ -139,6 +142,19 @@ const currentWorker = ref({
   cost_per_hour: 0,
   availability: true
 })
+
+const isBusyToday = (worker) => {
+  if (!worker.availability) return true;
+  // Comprovar si té algun esdeveniment actiu per avui
+  const today = new Date().toISOString().split('T')[0];
+  return worker.events?.some(event => {
+    const eventDate = new Date(event.date).toISOString().split('T')[0];
+    const isToday = eventDate === today;
+    const status = event.status?.toLowerCase();
+    const isActive = status !== 'finalitzat' && status !== 'completed' && status !== 'cancel·lat' && status !== 'cancelled';
+    return isToday && isActive;
+  });
+}
 
 const fetchWorkers = async () => {
   loading.value = true

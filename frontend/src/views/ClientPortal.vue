@@ -148,7 +148,7 @@
                 <input v-model="form.location_name" type="text" placeholder="Hotel, Masia, Restaurant, Sala..." />
               </div>
               
-              <div class="form-group">
+              <div class="form-group" style="margin-top: 2.5rem;">
                 <label>Pressupost aproximat que tens al cap (€)</label>
                 <div class="budget-input-wrapper">
                   <input v-model="form.client_budget" type="number" placeholder="Ex: 5000" />
@@ -389,7 +389,7 @@ const menuCatalog = [
     id: 3, 
     name: 'Finger Food & Cocktail', 
     price: 45, 
-    image: 'https://images.unsplash.com/photo-1541532713592-662974957758?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800',
     description: 'Ideal per a esdeveniments corporatius i networking relaxat.',
     features: ['Barra de cocktails d\'autor', 'Aperitius creatius', 'Format de peu dinàmic']
   }
@@ -401,7 +401,7 @@ const galleryImages = [
   { title: 'Aniversari VIP', url: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&q=80&w=800' },
   { title: 'Sopar d\'Empresa', url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800' },
   { title: 'Gala Benèfica', url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=800' },
-  { title: 'Festival Musical', url: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=800' }
+  { title: 'Festival Musical', url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800' }
 ]
 
 const services = [
@@ -900,10 +900,24 @@ input:focus, select:focus, textarea:focus {
   font-weight: 800;
 }
 
+.form-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: -3.5rem;
+}
+
+.privacy-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  max-width: 600px;
+}
+
 .btn-submit {
   width: 100%;
   max-width: 450px;
-  margin: 0 auto;
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   color: white;
   padding: 1.5rem;
@@ -926,11 +940,26 @@ input:focus, select:focus, textarea:focus {
    --------------------------------------------------------- */
 .status-grid, .menus-grid, .gallery-grid {
   display: grid;
-  gap: 2rem;
-  margin-top: 2rem;
+  gap: 3.5rem; /* Augmentat per a més aire */
+  margin-top: 3rem;
 }
 
 .status-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+
+.status-section {
+  padding: 4rem; /* Afegit padding per a que el contingut no estigui pegat */
+}
+
+.no-data {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
 .menus-grid { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); }
 .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 
@@ -952,6 +981,56 @@ input:focus, select:focus, textarea:focus {
 }
 
 .menu-img { width: 100%; height: 220px; object-fit: cover; }
+
+.menu-info {
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu-header h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.menu-price {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.menu-info p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.menu-features {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.menu-features li {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 .gallery-item {
   border-radius: 18px;

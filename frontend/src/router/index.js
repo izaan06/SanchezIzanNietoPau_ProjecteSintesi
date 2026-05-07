@@ -88,21 +88,34 @@ router.beforeEach((to, from, next) => {
   const role = localStorage.getItem('role')
   const isAuthenticated = !!token
 
+  // 1. Si la ruta requereix autenticació i no està autenticat -> Login
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' })
-  } else if (to.meta.requiresGuest && isAuthenticated) {
-    // Redirigir usuari ja loguejat segons el seu rol
-    if (role === 'admin') next({ name: 'dashboard' })
-    else if (role === 'worker') next({ name: 'worker-dashboard' })
-    else next({ name: 'client-portal' })
-  } else if (to.meta.roles && !to.meta.roles.includes(role)) {
-    // Si l'usuari no té el rol necessari, redirigir-lo a la seva home
-    if (role === 'admin') next({ name: 'dashboard' })
-    else if (role === 'worker') next({ name: 'worker-dashboard' })
-    else next({ name: 'client-portal' })
-  } else {
-    next()
+    return next({ name: 'login' })
   }
+
+  // 2. Si la ruta és per a convidats (Login/Register) i ja està autenticat -> Redirigir a la seva home
+  if (to.meta.requiresGuest && isAuthenticated) {
+    if (role === 'admin') return next({ name: 'dashboard' })
+    if (role === 'worker') return next({ name: 'worker-dashboard' })
+    return next({ name: 'client-portal' })
+  }
+
+  // 3. Comprovació de Rols
+  if (to.meta.roles && !to.meta.roles.includes(role)) {
+    // Evitar bucle infinit: si ja anem a la ruta de destí, no redirigir de nou
+    let targetName = 'client-portal'
+    if (role === 'admin') targetName = 'dashboard'
+    else if (role === 'worker') targetName = 'worker-dashboard'
+
+    if (to.name === targetName) {
+      return next()
+    } else {
+      return next({ name: targetName })
+    }
+  }
+
+  // 4. En qualsevol altre cas, permetre la navegació
+  next()
 })
 
 export default router

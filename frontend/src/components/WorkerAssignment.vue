@@ -37,7 +37,7 @@
               :key="worker.id" 
               :value="worker.id"
             >
-              {{ worker.name }} ({{ worker.email }})
+              {{ worker.name }}
             </option>
           </select>
           <button type="submit" class="btn-assign" :disabled="!selectedWorkerId || isAssigning">
@@ -168,161 +168,162 @@ onMounted(async () => {
 .worker-assignment {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3.5rem;
+  padding: 1rem;
 }
 
-.panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+h3 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.04em;
+  margin-bottom: 1rem;
 }
 
-.panel h3 {
-  margin-top: 0;
+h4 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
   margin-bottom: 1.5rem;
-  color: var(--text-primary);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  border: 1px solid var(--glass-border);
-}
-.alert.success { background-color: rgba(16, 185, 129, 0.1); color: var(--success); }
-.alert.error { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); }
-.alert.info { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-
-.assign-form {
-  display: flex;
-  flex-wrap: wrap;
   gap: 1rem;
-  align-items: flex-end;
+}
+h4::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+
+.assigned-section, .assign-section {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 24px;
+  padding: 2.5rem;
 }
 
-.form-group {
+.worker-list {
+  list-style: none;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-  min-width: 200px;
+  gap: 1rem;
 }
 
-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.worker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s ease;
 }
 
-select {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  background-color: rgba(15, 23, 42, 0.6);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 1rem;
-  transition: all 0.2s;
+.worker-item:hover {
+  background: rgba(255,255,255,0.05);
+  transform: translateX(5px);
 }
 
-select:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+.worker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
-
-/* Taula de treballadors assignats */
-.table-responsive {
-  overflow-x: auto;
-}
-
-.assigned-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.assigned-table th, .assigned-table td {
-  padding: 1rem 1.5rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.assigned-table th {
-  background-color: rgba(15, 23, 42, 0.4);
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-}
-
-.assigned-table tr:last-child td { border-bottom: none; }
-.assigned-table tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
 
 .worker-name {
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.05rem;
 }
 
 .worker-role {
-  background-color: rgba(99, 102, 241, 0.15);
-  color: var(--accent-primary);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
   font-size: 0.8rem;
+  color: var(--accent-primary);
   font-weight: 600;
-  display: inline-block;
-  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.btn-danger {
+.btn-remove {
   background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-danger:hover {
-  background: var(--danger);
+.btn-remove:hover {
+  background: #ef4444;
   color: white;
+}
+
+.assign-form {
+  display: flex;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.worker-select {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.btn-assign {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 0 2.5rem;
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-assign:hover:not(:disabled) {
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px -5px rgba(99, 102, 241, 0.5);
+}
+
+.btn-assign:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .empty-state {
+  padding: 3rem;
   text-align: center;
-  border: 1px dashed #cbd5e1;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #64748b;
+  border: 2px dashed rgba(255,255,255,0.05);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 .alert {
+  padding: 1.5rem;
+  border-radius: 18px;
+  font-weight: 600;
   margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
 }
 
-.alert.success { background: #dcfce7; color: #166534; }
-.alert.error { background: #fee2e2; color: #991b1b; }
+.alert.success { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+.alert.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+.loading {
+  padding: 5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 600;
+}
 </style>
