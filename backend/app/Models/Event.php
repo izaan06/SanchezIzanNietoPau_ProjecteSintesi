@@ -11,27 +11,27 @@ class Event extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'date',
-        'location',
-        'type',
-        'assistants',
-        'status',
-        'client_id',
-        'estimated_cost',
-        'appointment_request_id',
-        'tasks',
+        'name',                   // Nom de l'esdeveniment
+        'date',                   // Data i hora
+        'location',               // Ubicació física
+        'type',                   // Tipus (Boda, Corporatiu, etc.)
+        'assistants',             // Nombre de convidats
+        'status',                 // Estat actual (confirmed, planning, etc.)
+        'client_id',              // ID del client propietari
+        'estimated_cost',         // Cost calculat de l'esdeveniment
+        'appointment_request_id', // Enllaç amb la petició original de la IA
+        'tasks',                  // Checklist de tasques en format JSON
     ];
 
     protected $casts = [
         'date' => 'datetime',
         'end_date' => 'datetime',
         'assistants' => 'integer',
-        'tasks' => 'array',
+        'tasks' => 'array', // Converteix el JSON de la BD a un array de PHP automàticament
     ];
 
     /**
-     * Obtenir la sol·licitud original de la IA.
+     * Relació: Obté la sol·licitud original processada per la IA.
      */
     public function appointmentRequest()
     {
@@ -39,7 +39,7 @@ class Event extends Model
     }
 
     /**
-     * Obtenir el client propietari de l'esdeveniment.
+     * Relació: Obté el client que ha contractat l'esdeveniment.
      */
     public function client()
     {
@@ -47,7 +47,8 @@ class Event extends Model
     }
 
     /**
-     * Treballadors assignats a l'esdeveniment.
+     * Relació: Treballadors que han estat assignats a aquest esdeveniment.
+     * Inclou dades extra de la taula pivot com les hores i notes.
      */
     public function workers()
     {

@@ -72,6 +72,12 @@ const routes = [
         name: 'admin-calendar',
         component: () => import('../views/CalendarView.vue'),
         meta: { roles: ['admin'] }
+      },
+      {
+        path: 'admin/attendance',
+        name: 'admin-attendance',
+        component: () => import('../views/AdminAttendanceView.vue'),
+        meta: { roles: ['admin'] }
       }
     ]
   }

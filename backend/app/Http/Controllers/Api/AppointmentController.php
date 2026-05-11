@@ -162,4 +162,13 @@ class AppointmentController extends Controller
         $appointment->update(['status' => $request->status]);
         return response()->json(['message' => 'Estat actualitzat', 'data' => $appointment]);
     }
+
+    /**
+     * Eliminar una sol·licitud del sistema.
+     */
+    public function destroy(AppointmentRequest $appointment)
+    {
+        $appointment->delete();
+        return response()->json(['message' => 'Sol·licitud eliminada correctament']);
+    }
 }

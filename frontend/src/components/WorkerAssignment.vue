@@ -66,25 +66,31 @@ const props = defineProps({
   }
 });
 
-// Estat
-const allWorkers = ref([]);
-const assignedWorkers = ref([]);
-const selectedWorkerId = ref('');
-const isLoading = ref(false);
-const isAssigning = ref(false);
-const message = ref('');
-const messageType = ref('');
+// --- ESTAT DEL COMPONENT ---
+const allWorkers = ref([]);      // Llista de tots els treballadors del sistema
+const assignedWorkers = ref([]); // Treballadors assignats a aquest esdeveniment concret
+const selectedWorkerId = ref(''); // ID del treballador seleccionat al desplegable
+const isLoading = ref(false);     // Indicador de càrrega
+const isAssigning = ref(false);   // Indicador de procés d'assignació en curs
+const message = ref('');          // Missatge de feedback
+const messageType = ref('');      // Tipus de missatge (success/error)
 
-// Computed: Treballadors disponibles que encara NO estan assignats
+/**
+ * Computed: Filtra la llista de tots els treballadors per mostrar només
+ * aquells que encara NO estan assignats a l'esdeveniment actual.
+ */
 const availableWorkers = computed(() => {
   const assignedIds = assignedWorkers.value.map(w => w.id);
   return allWorkers.value.filter(w => !assignedIds.includes(w.id));
 });
 
-// Mètodes API
+// --- MÈTODES API ---
+
+/**
+ * Obté la llista global de treballadors del sistema.
+ */
 const fetchAllWorkers = async () => {
   try {
-    // Assumim que la ruta '/workers' o '/users' ens retorna els treballadors
     const response = await api.get('/workers');
     allWorkers.value = response.data.data || response.data;
   } catch (error) {
@@ -93,6 +99,9 @@ const fetchAllWorkers = async () => {
   }
 };
 
+/**
+ * Obté els treballadors que ja estan vinculats a aquest esdeveniment.
+ */
 const fetchAssignedWorkers = async () => {
   if (!props.eventId) return;
   isLoading.value = true;
@@ -107,6 +116,9 @@ const fetchAssignedWorkers = async () => {
   }
 };
 
+/**
+ * Assigna el treballador seleccionat a l'esdeveniment actual.
+ */
 const assignWorker = async () => {
   if (!selectedWorkerId.value) return;
   
@@ -117,7 +129,7 @@ const assignWorker = async () => {
     });
     showMessage('Treballador assignat correctament', 'success');
     selectedWorkerId.value = '';
-    await fetchAssignedWorkers(); // Recarreguem la llista per reflectir els canvis
+    await fetchAssignedWorkers(); // Recarreguem per veure el nou treballador a la llista
   } catch (error) {
     console.error("Error assignant treballador:", error);
     showMessage(error.response?.data?.message || 'Error al assignar el treballador', 'error');
@@ -126,19 +138,25 @@ const assignWorker = async () => {
   }
 };
 
+/**
+ * Elimina el vincle entre un treballador i l'esdeveniment.
+ */
 const unassignWorker = async (workerId) => {
   if (!confirm("Vols desassignar aquest treballador de l'esdeveniment?")) return;
   
   try {
     await api.delete(`/events/${props.eventId}/workers/${workerId}`);
     showMessage('Treballador desassignat', 'success');
-    await fetchAssignedWorkers(); // Recarreguem la llista
+    await fetchAssignedWorkers(); // Actualitzem la llista
   } catch (error) {
     console.error("Error desassignant treballador:", error);
     showMessage('Error al desassignar', 'error');
   }
 };
 
+/**
+ * Mostra un missatge temporal a la pantalla.
+ */
 const showMessage = (msg, type) => {
   message.value = msg;
   messageType.value = type;

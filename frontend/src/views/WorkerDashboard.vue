@@ -35,6 +35,9 @@
         </div>
       </div>
 
+      <!-- Sistema de Fitxatge -->
+      <AttendanceCard class="attendance-section" />
+
       <!-- Llista d'Esdeveniments Propers -->
       <div class="glass-card events-card">
         <div class="card-header">
@@ -125,6 +128,7 @@
 import { ref, onMounted } from 'vue'
 import { User, MapPin, CalendarDays } from 'lucide-vue-next'
 import api from '../api/axios'
+import AttendanceCard from '../components/AttendanceCard.vue'
 
 const loading = ref(true)
 const error = ref(null)

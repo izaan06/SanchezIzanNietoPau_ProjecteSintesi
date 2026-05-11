@@ -49,6 +49,11 @@
             <span>Sol·licituds IA</span>
           </router-link>
 
+          <router-link to="/admin/attendance" class="nav-item" active-class="active">
+            <Clock class="icon" />
+            <span>Registre de Jornada</span>
+          </router-link>
+
           <router-link to="/time-off" class="nav-item" active-class="active">
             <CalendarDays class="icon" />
             <span>Gestió de Vacances</span>
@@ -108,10 +113,40 @@
           <h2>{{ currentPageTitle }}</h2>
         </div>
         <div class="user-profile">
-          <button class="notification-btn">
-            <Bell class="icon-sm" />
-            <span class="badge">1</span>
-          </button>
+          <div class="notifications-wrapper">
+            <button class="notification-btn" @click="toggleNotifications">
+              <Bell class="icon-sm" />
+              <span v-if="pendingCount > 0" class="badge">{{ pendingCount }}</span>
+            </button>
+            
+            <!-- Dropdown de Notificacions -->
+            <transition name="slide-up">
+              <div v-if="showNotifications" class="notifications-dropdown glass-card">
+                <div class="notifications-header">
+                  <span>Notificacions</span>
+                  <span class="count-pill">{{ pendingCount }} pendents</span>
+                </div>
+                <div class="notifications-list">
+                  <div v-if="pendingCount === 0" class="no-notifications">
+                    No tens cap notificació pendent.
+                  </div>
+                  <template v-else>
+                    <div v-for="app in pendingAppointments" :key="app.id" class="notification-item" @click="goToAppointments">
+                      <div class="notif-icon"><Sparkles class="icon-xs" /></div>
+                      <div class="notif-content">
+                        <p class="notif-text">Nova sol·licitud de <strong>{{ app.name }}</strong></p>
+                        <span class="notif-time">Tipus: {{ app.event_type }}</span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <div class="notifications-footer" @click="goToAppointments">
+                  Veure totes les sol·licituds
+                </div>
+              </div>
+            </transition>
+          </div>
+
           <div class="avatar">
             <User class="icon-sm" />
           </div>
@@ -135,8 +170,9 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import api from '../api/axios'
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -145,11 +181,12 @@ import {
   LogOut,
   Sparkles,
   User,
-  UserCog,
-  Bell,
-  Utensils,
-  Image,
-  Home
+  UserCog, 
+  Bell, 
+  Utensils, 
+  Image, 
+  Home,
+  Clock
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -186,6 +223,43 @@ const handleLogout = () => {
   localStorage.removeItem('userName')
   router.push({ name: 'login' })
 }
+
+// --- NOTIFICACIONS ---
+const showNotifications = ref(false)
+const pendingAppointments = ref([])
+const pendingCount = ref(0)
+let pollInterval = null
+
+const toggleNotifications = () => {
+  showNotifications.value = !showNotifications.value
+}
+
+const fetchNotifications = async () => {
+  if (userRole.value !== 'admin') return
+  try {
+    const res = await api.get('/appointments')
+    const all = res.data.data || []
+    pendingAppointments.value = all.filter(a => a.status === 'pending').slice(0, 5)
+    pendingCount.value = all.filter(a => a.status === 'pending').length
+  } catch (err) {
+    console.error("Error carregant notificacions:", err)
+  }
+}
+
+const goToAppointments = () => {
+  showNotifications.value = false
+  router.push('/appointments')
+}
+
+onMounted(() => {
+  fetchNotifications()
+  // Poll cada 30 segons per noves sol·licituds
+  pollInterval = setInterval(fetchNotifications, 30000)
+})
+
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
+})
 </script>
 
 <style scoped>
@@ -420,6 +494,120 @@ const handleLogout = () => {
 .user-role {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+/* --- NOTIFICACIONS DROPDOWN --- */
+.notifications-wrapper {
+  position: relative;
+}
+
+.notifications-dropdown {
+  position: absolute;
+  top: calc(100% + 15px);
+  right: 0;
+  width: 320px;
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  overflow: hidden;
+  animation: dropdownFade 0.2s ease-out;
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notifications-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.count-pill {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-primary);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+}
+
+.notifications-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.no-notifications {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.notification-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notification-item:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.notif-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.notif-text {
+  font-size: 0.85rem;
+  color: #fff;
+  line-height: 1.4;
+}
+
+.notif-text strong {
+  color: var(--accent-primary);
+}
+
+.notif-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.notifications-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--accent-primary);
+  background: rgba(255,255,255,0.02);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.notifications-footer:hover {
+  text-decoration: underline;
 }
 
 .page-container {

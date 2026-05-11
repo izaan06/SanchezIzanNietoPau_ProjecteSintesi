@@ -9,7 +9,12 @@
 
     <div v-else class="appointments-grid">
       <div v-for="app in appointments" :key="app.id" class="glass-card appointment-card" :class="app.status">
-        <div class="card-badge">{{ app.status.toUpperCase() }}</div>
+        <div class="card-top">
+          <div class="card-badge">{{ app.status.toUpperCase() }}</div>
+          <button @click="deleteRequest(app.id)" class="btn-delete-card" title="Eliminar sol·licitud">
+            <Trash2 class="icon-xs" />
+          </button>
+        </div>
         
         <div class="card-main">
           <div class="event-info">
@@ -26,7 +31,8 @@
               </div>
               <div class="meta-item">
                 <Clock class="icon-xs" /> 
-                <span>{{ app.start_time }} - {{ app.end_time }}</span>
+                <span v-if="app.start_time">{{ app.start_time }} - {{ app.end_time || '??' }}</span>
+                <span v-else>Hora a concretar</span>
               </div>
               <div class="meta-item">
                 <Users class="icon-xs" /> 
@@ -112,24 +118,33 @@ import {
   Clock, 
   MapPin, 
   Music, 
-  Cake 
+  Cake,
+  Trash2
 } from 'lucide-vue-next'
 import api from '../api/axios'
 
-const appointments = ref([])
-const loading = ref(true)
+// --- ESTAT DE LA VISTA ---
+const appointments = ref([]) // Llista de sol·licituds (Appointment Requests)
+const loading = ref(true)      // Indicador de càrrega de dades
 
+/**
+ * Carrega totes les sol·licituds des de l'API.
+ */
 const fetchAppointments = async () => {
   try {
     const res = await api.get('/appointments')
     appointments.value = res.data.data
   } catch (err) {
-    console.error(err)
+    console.error("Error carregant sol·licituds:", err)
   } finally {
     loading.value = false
   }
 }
 
+/**
+ * Aprova una sol·licitud, la qual cosa crea un esdeveniment real
+ * i dispara la lògica d'assignació automàtica de la IA.
+ */
 const approveRequest = async (id) => {
   if (!confirm('Vols aprovar aquest esdeveniment? La IA assignarà els millors treballadors automàticament.')) return
   try {
@@ -137,27 +152,48 @@ const approveRequest = async (id) => {
     alert('Esdeveniment creat i treballadors assignats!')
     fetchAppointments()
   } catch (err) {
-    console.error(err)
+    console.error("Error aprovant sol·licitud:", err)
   }
 }
 
+/**
+ * Rebutja una sol·licitud i en canvia l'estat.
+ */
 const rejectRequest = async (id) => {
   try {
     await api.patch(`/appointments/${id}`, { status: 'rejected' })
     fetchAppointments()
   } catch (err) {
-    console.error(err)
+    console.error("Error rebutjant sol·licitud:", err)
   }
 }
 
-const formatDate = (date) => date ? new Date(date).toLocaleDateString() : 'A concretar'
+const deleteRequest = async (id) => {
+  if (!confirm('Segur que vols eliminar aquesta sol·licitud permanentment?')) return
+  try {
+    await api.delete(`/appointments/${id}`)
+    fetchAppointments()
+  } catch (err) {
+    console.error("Error eliminant sol·licitud:", err)
+    alert('Error al eliminar la sol·licitud')
+  }
+}
 
+/**
+ * Formata la data per mostrar-la de forma llegible (català).
+ */
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('ca-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'A concretar'
+
+/**
+ * Determina la classe CSS segons la diferència entre el pressupost del client
+ * i el preu estimat per la IA.
+ */
 const budgetDiffClass = (app) => {
   if (!app.client_budget) return ''
   const diff = app.client_budget - app.ai_estimated_budget
-  if (diff >= 0) return 'budget-ok'
-  if (diff > -500) return 'budget-warning'
-  return 'budget-danger'
+  if (diff >= 0) return 'budget-ok'       // Client paga més del que costa
+  if (diff > -500) return 'budget-warning' // Client està a prop del preu IA
+  return 'budget-danger'                 // Pressupost del client massa baix
 }
 
 onMounted(fetchAppointments)
@@ -185,15 +221,44 @@ onMounted(fetchAppointments)
 .appointment-card.accepted { border-left-color: var(--success); }
 .appointment-card.rejected { border-left-color: var(--danger); opacity: 0.7; }
 
-.card-badge {
+.appointment-card.accepted { border-left-color: var(--success); }
+.appointment-card.rejected { border-left-color: var(--danger); opacity: 0.7; }
+
+.card-top {
   position: absolute;
   top: 1rem;
   right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-badge {
+  position: static;
   font-size: 0.65rem;
   font-weight: 800;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-delete-card {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-card:hover {
+  background: #ef4444;
+  color: white;
 }
 
 .card-main {

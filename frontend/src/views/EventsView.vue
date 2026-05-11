@@ -323,16 +323,17 @@ import {
 import api from '../api/axios';
 import WorkerAssignment from '../components/WorkerAssignment.vue';
 
-const events = ref([]);
-const isLoading = ref(false);
-const message = ref('');
-const messageType = ref('');
-const showForm = ref(false);
-const isEditing = ref(false);
-const selectedEventId = ref(null);
-const showDetails = ref(false);
-const detailEvent = ref(null);
-const newTaskText = ref('');
+// --- ESTATS DE LA VISTA ---
+const events = ref([]);           // Llista completa d'esdeveniments
+const isLoading = ref(false);     // Indicador de càrrega global
+const message = ref('');          // Missatge per a alertes
+const messageType = ref('');      // Estil de l'alerta (success/error)
+const showForm = ref(false);      // Controla si es veu el modal de formulari
+const isEditing = ref(false);     // Mode edició vs mode creació
+const selectedEventId = ref(null); // ID per a la gestió de treballadors
+const showDetails = ref(false);    // Controla el modal de dashboard/detalls
+const detailEvent = ref(null);     // Dades de l'esdeveniment seleccionat
+const newTaskText = ref('');       // Variable per al camp de nova tasca
 
 const formData = ref({
   id: null,
@@ -347,20 +348,29 @@ const formData = ref({
 
 const clients = ref([]);
 
+/**
+ * Obté la llista de clients per al desplegable del formulari.
+ */
 const fetchClients = async () => {
   try {
     const response = await api.get('/clients');
     clients.value = response.data;
   } catch (error) {
-    console.error('Error fetching clients:', error);
+    console.error('Error carregant clients:', error);
   }
 };
 
+/**
+ * Calcula quantes tasques s'han completat del total.
+ */
 const completedTasksCount = computed(() => {
   if (!detailEvent.value?.tasks) return 0;
   return detailEvent.value.tasks.filter(t => t.completed).length;
 });
 
+/**
+ * Obre el dashboard de detalls d'un esdeveniment.
+ */
 const openDetails = (event) => {
   detailEvent.value = { ...event };
   if (!detailEvent.value.tasks) detailEvent.value.tasks = [];
@@ -372,13 +382,16 @@ const closeDetails = () => {
   detailEvent.value = null;
 };
 
+/**
+ * Carrega tots els esdeveniments de la base de dades.
+ */
 const fetchEvents = async () => {
   isLoading.value = true;
   try {
     const response = await api.get('/events');
     events.value = response.data;
   } catch (error) {
-    console.error('Error fetching events:', error);
+    console.error('Error carregant esdeveniments:', error);
     message.value = 'Error al carregar els esdeveniments';
     messageType.value = 'error';
   } finally {
@@ -410,13 +423,24 @@ const openCreateForm = () => {
   showForm.value = true;
 };
 
+const formatForInput = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 const openEditForm = (event) => {
   isEditing.value = true;
   formData.value = {
     id: event.id,
     name: event.name,
     description: event.description,
-    date: event.date ? new Date(event.date).toISOString().slice(0, 16) : '',
+    date: formatForInput(event.date),
     location: event.location,
     type: event.type,
     assistants: event.assistants,
@@ -430,6 +454,9 @@ const cancelForm = () => {
   isEditing.value = false;
 };
 
+/**
+ * Envia les dades del formulari a l'API (Creació o Edició).
+ */
 const submitForm = async () => {
   isLoading.value = true;
   try {
@@ -444,7 +471,7 @@ const submitForm = async () => {
     showForm.value = false;
     fetchEvents();
   } catch (error) {
-    console.error('Error saving event:', error);
+    console.error('Error desant l\'esdeveniment:', error);
     message.value = 'Error al desar l\'esdeveniment';
     messageType.value = 'error';
   } finally {
@@ -453,6 +480,9 @@ const submitForm = async () => {
   }
 };
 
+/**
+ * Canvia l'estat d'un esdeveniment (ex: de Confirmat a En Marxa).
+ */
 const updateEventStatus = async (status) => {
   const oldStatus = detailEvent.value.status;
   detailEvent.value.status = status;
@@ -462,7 +492,7 @@ const updateEventStatus = async (status) => {
   try {
     await api.put(`/events/${detailEvent.value.id}`, { status });
   } catch (error) {
-    console.error('Error updating status:', error);
+    console.error('Error actualitzant estat:', error);
     detailEvent.value.status = oldStatus;
     if (idx !== -1) events.value[idx].status = oldStatus;
   }
@@ -491,6 +521,9 @@ const saveTasks = async () => {
   }
 };
 
+/**
+ * Elimina un esdeveniment després de confirmar.
+ */
 const confirmDelete = async (id) => {
   if (confirm('Estàs segur que vols eliminar aquest esdeveniment? S\'eliminarà també la sol·licitud associada.')) {
     try {
@@ -499,7 +532,7 @@ const confirmDelete = async (id) => {
       messageType.value = 'success';
       fetchEvents();
     } catch (error) {
-      console.error('Error deleting event:', error);
+      console.error('Error eliminant esdeveniment:', error);
       message.value = 'Error al eliminar l\'esdeveniment';
       messageType.value = 'error';
     } finally {

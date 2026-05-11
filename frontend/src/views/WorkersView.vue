@@ -70,8 +70,10 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" @click="closeModal" class="btn-secondary">Cancel·lar</button>
-            <button type="submit" class="btn-primary">Guardar</button>
+            <button type="button" @click="closeModal" class="btn-secondary" :disabled="isSaving">Cancel·lar</button>
+            <button type="submit" class="btn-primary" :disabled="isSaving">
+              {{ isSaving ? 'Guardant...' : 'Guardar' }}
+            </button>
           </div>
         </form>
       </div>
@@ -195,18 +197,24 @@ const closeModal = () => {
   showModal.value = false
 }
 
+const isSaving = ref(false)
+
 const saveWorker = async () => {
+  if (isSaving.value) return
+  isSaving.value = true
   try {
     if (isEditing.value) {
       await api.put(`/workers/${currentWorker.value.id}`, currentWorker.value)
     } else {
       await api.post('/workers', currentWorker.value)
     }
-    fetchWorkers()
+    await fetchWorkers()
     closeModal()
   } catch (err) {
     alert('Error al guardar el treballador')
     console.error(err)
+  } finally {
+    isSaving.value = false
   }
 }
 

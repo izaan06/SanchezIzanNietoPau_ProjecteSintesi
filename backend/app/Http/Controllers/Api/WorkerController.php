@@ -10,7 +10,8 @@ use Illuminate\Http\JsonResponse;
 class WorkerController extends Controller
 {
     /**
-     * Llistar tots els treballadors.
+     * Llistar tots els treballadors del sistema.
+     * Carrega també els esdeveniments on participen.
      */
     public function index(): JsonResponse
     {
@@ -19,7 +20,8 @@ class WorkerController extends Controller
     }
 
     /**
-     * Crear un nou treballador i vincular-lo a un usuari si s'especifica.
+     * Crear un nou perfil de treballador.
+     * Si s'especifica un user_id, es vincula automàticament i se li assigna el rol 'worker'.
      */
     public function store(Request $request): JsonResponse
     {
@@ -36,7 +38,7 @@ class WorkerController extends Controller
 
         $worker = Worker::create($validated);
 
-        // Si hem triat un usuari existent, el promovem a rol 'worker'
+        // Si hem triat un usuari existent, el promovem a rol 'worker' per assegurar els permisos
         if ($worker->user_id) {
             $user = \App\Models\User::find($worker->user_id);
             $user->update(['role' => 'worker']);
@@ -49,7 +51,7 @@ class WorkerController extends Controller
     }
 
     /**
-     * Mostrar un treballador específic amb el seu usuari.
+     * Mostrar els detalls d'un treballador específic, incloent-hi les dades de l'usuari.
      */
     public function show(Worker $worker): JsonResponse
     {
@@ -57,7 +59,7 @@ class WorkerController extends Controller
     }
 
     /**
-     * Actualitzar dades d'un treballador i gestionar el vincle amb l'usuari.
+     * Actualitzar dades del perfil d'un treballador.
      */
     public function update(Request $request, Worker $worker): JsonResponse
     {
@@ -75,7 +77,7 @@ class WorkerController extends Controller
         $oldUserId = $worker->user_id;
         $worker->update($validated);
 
-        // Si el vincle ha canviat o és nou
+        // Si s'assigna a un usuari nou, actualitzem el rol de l'usuari a 'worker'
         if ($worker->user_id && $worker->user_id != $oldUserId) {
             $user = \App\Models\User::find($worker->user_id);
             $user->update(['role' => 'worker']);
@@ -88,7 +90,8 @@ class WorkerController extends Controller
     }
 
     /**
-     * Llistar usuaris que encara no són treballadors (per poder-los assignar).
+     * Llistar usuaris que encara no tenen un perfil de treballador assignat.
+     * Útil per al formulari de creació de nous treballadors.
      */
     public function getAvailableUsers(): JsonResponse
     {
@@ -101,7 +104,8 @@ class WorkerController extends Controller
     }
 
     /**
-     * Eliminar un treballador.
+     * Eliminar el perfil d'un treballador del sistema.
+     * Nota: L'usuari vinculat NO s'elimina, només el seu perfil professional.
      */
     public function destroy(Worker $worker): JsonResponse
     {
