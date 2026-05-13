@@ -1,0 +1,8 @@
+node_modules
+vendor
+.git
+.venv
+frontend/node_modules
+backend/vendor
+backend/node_modules
+ai_microservice/.venv

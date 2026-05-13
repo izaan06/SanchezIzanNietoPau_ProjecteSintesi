@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-grup13
+  namespace: grup13
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-grup13
+      type: frontend
+  template:
+    metadata:
+      labels:
+        app: web-grup13
+        type: frontend
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: frontend
+        image: kube0.lacetania.cat/grup13/frontend:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: grup13
+spec:
+  selector:
+    app: api-grup13
+    type: backend
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-grup13
+  namespace: grup13
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-grup13
+      type: backend
+  template:
+    metadata:
+      labels:
+        app: api-grup13
+        type: backend
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: backend
+        image: kube0.lacetania.cat/grup13/backend:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: DB_CONNECTION
+          value: "mysql"
+        - name: DB_HOST
+          value: "mariadb-service"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_DATABASE
+          value: "eventai_db"
+        - name: DB_USERNAME
+          value: "grup13"
+        - name: DB_PASSWORD
+          value: "password_13"
+        - name: APP_KEY
+          value: "base64:D3P5B230NDQCznTqIxKqzlzYrZYpFfsNy2vqVxV0JhE="
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-grup13
+  namespace: grup13
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-grup13
+      type: microservice
+  template:
+    metadata:
+      labels:
+        app: ai-grup13
+        type: microservice
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: ai-service
+        image: kube0.lacetania.cat/grup13/ai-service:latest
+        ports:
+        - containerPort: 5000

@@ -26,7 +26,7 @@ class EventCostController extends Controller
         try {
             // URL del microservei Flask 
             // En un entorn de producció, hauries de posar això al fitxer .env com a env('FLASK_API_URL')
-            $flaskUrl = 'http://127.0.0.1:5000/predict-cost';
+            $flaskUrl = env('AI_SERVICE_URL', 'http://127.0.0.1:5000') . '/predict-cost';
 
             // 2. Fer petició HTTP POST cap a la IA amb les dades
             // Utilitzem el Facade "Http" de Laravel

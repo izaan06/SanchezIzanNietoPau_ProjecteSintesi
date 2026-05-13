@@ -76,14 +76,16 @@
         </table>
     </div>
 
+    @if(is_iterable($appointment->ai_recommendations))
     <div class="section" style="margin-top: 30px;">
         <div class="section-title">Recomanacions de la nostra IA</div>
         <ul style="font-size: 13px;">
             @foreach($appointment->ai_recommendations as $rec)
-                <li>{{ $rec }}</li>
+                <li>{{ is_string($rec) ? $rec : json_encode($rec) }}</li>
             @endforeach
         </ul>
     </div>
+    @endif
 
     <div class="footer">
         Aquest pressupost ha estat generat automàticament per EventAI Manager.<br>

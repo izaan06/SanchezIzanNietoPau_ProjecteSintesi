@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api', // Adjust this to your backend API URL
+  baseURL: '/api', // This will be proxied by Nginx in Kubernetes
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
