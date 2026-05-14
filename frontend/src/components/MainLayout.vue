@@ -14,47 +14,42 @@
         
         <!-- Admin Links -->
         <template v-if="userRole === 'admin'">
-          <router-link to="/" class="nav-item" exact-active-class="active">
+          <router-link to="/app/dashboard" class="nav-item" exact-active-class="active">
             <LayoutDashboard class="icon" />
             <span>Dashboard Admin</span>
           </router-link>
           
-          <router-link to="/events" class="nav-item" active-class="active">
+          <router-link to="/app/events" class="nav-item" active-class="active">
             <CalendarDays class="icon" />
             <span>Esdeveniments</span>
           </router-link>
 
-          <router-link to="/calendar" class="nav-item" active-class="active">
+          <router-link to="/app/calendar" class="nav-item" active-class="active">
             <CalendarDays class="icon" />
             <span>Calendari Mestre</span>
           </router-link>
 
-          <router-link to="/clients" class="nav-item" active-class="active">
+          <router-link to="/app/clients" class="nav-item" active-class="active">
             <Users class="icon" />
             <span>Clients</span>
           </router-link>
 
-          <router-link to="/workers" class="nav-item" active-class="active">
+          <router-link to="/app/workers" class="nav-item" active-class="active">
             <Briefcase class="icon" />
             <span>Treballadors</span>
           </router-link>
 
-          <router-link to="/users" class="nav-item" active-class="active">
+          <router-link to="/app/users" class="nav-item" active-class="active">
             <UserCog class="icon" />
             <span>Usuaris</span>
           </router-link>
 
-          <router-link to="/appointments" class="nav-item" active-class="active">
+          <router-link to="/app/appointments" class="nav-item" active-class="active">
             <Sparkles class="icon" />
             <span>Sol·licituds IA</span>
           </router-link>
 
-          <router-link to="/admin/attendance" class="nav-item" active-class="active">
-            <Clock class="icon" />
-            <span>Registre de Jornada</span>
-          </router-link>
-
-          <router-link to="/time-off" class="nav-item" active-class="active">
+          <router-link to="/app/time-off" class="nav-item" active-class="active">
             <CalendarDays class="icon" />
             <span>Gestió de Vacances</span>
           </router-link>
@@ -62,7 +57,7 @@
 
         <!-- Worker Links -->
         <template v-if="userRole === 'worker'">
-          <router-link to="/worker" class="nav-item" active-class="active">
+          <router-link to="/app/worker" class="nav-item" active-class="active">
             <CalendarDays class="icon" />
             <span>El meu Calendari</span>
           </router-link>
@@ -185,8 +180,7 @@ import {
   Bell, 
   Utensils, 
   Image, 
-  Home,
-  Clock
+  Home
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -248,7 +242,7 @@ const fetchNotifications = async () => {
 
 const goToAppointments = () => {
   showNotifications.value = false
-  router.push('/appointments')
+  router.push('/app/appointments')
 }
 
 onMounted(() => {

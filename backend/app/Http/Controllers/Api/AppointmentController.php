@@ -43,7 +43,7 @@ class AppointmentController extends Controller
 
         // Crida a la IA per obtenir el pressupost estimat i l'adreça
         try {
-            $aiResponse = \Illuminate\Support\Facades\Http::post(env('AI_SERVICE_URL', 'http://localhost:5000') . '/predict-budget', [
+            $aiResponse = \Illuminate\Support\Facades\Http::post(env('AI_SERVICE_URL', 'http://127.0.0.1:5000') . '/predict-budget', [
                 'event_type'    => $data['event_type'],
                 'attendees'     => $data['attendees'] ?? 50,
                 'location_name' => $data['location_name'] ?? '',
@@ -129,7 +129,7 @@ class AppointmentController extends Controller
         // 5. Demanar a la IA recomanacions de treballadors
         $workers = \App\Models\Worker::all();
         try {
-            $aiResponse = \Illuminate\Support\Facades\Http::post(env('AI_SERVICE_URL', 'http://localhost:5000') . '/recommend-workers', [
+            $aiResponse = \Illuminate\Support\Facades\Http::post(env('AI_SERVICE_URL', 'http://127.0.0.1:5000') . '/recommend-workers', [
                 'event_type' => $appointment->event_type,
                 'workers'    => $workers->toArray(),
             ]);

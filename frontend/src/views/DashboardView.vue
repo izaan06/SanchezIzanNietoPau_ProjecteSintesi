@@ -58,7 +58,7 @@
       <div class="panel glass-card events-panel">
         <div class="panel-header">
           <h3><CalendarDays class="icon-sm" /> Pròxims Esdeveniments</h3>
-          <router-link to="/events" class="btn-text">Veure tots</router-link>
+          <router-link to="/app/events" class="btn-text">Veure tots</router-link>
         </div>
         <div class="panel-body">
           <ul class="event-list" v-if="stats.recent_events?.length > 0">

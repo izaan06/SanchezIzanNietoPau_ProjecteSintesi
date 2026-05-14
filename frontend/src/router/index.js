@@ -3,18 +3,36 @@ import MainLayout from '../components/MainLayout.vue'
 
 const routes = [
   {
+    path: '/',
+    name: 'landing',
+    component: () => import('../views/LandingView.vue'),
+    meta: { requiresGuest: true }
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('../views/LoginView.vue'),
     meta: { requiresGuest: true }
   },
   {
-    path: '/',
+    path: '/features',
+    name: 'features',
+    component: () => import('../views/FeaturesView.vue'),
+    meta: { requiresGuest: false }
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('../views/AboutView.vue'),
+    meta: { requiresGuest: false }
+  },
+  {
+    path: '/app',
     component: MainLayout,
     meta: { requiresAuth: true },
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'dashboard',
         component: () => import('../views/DashboardView.vue'),
         meta: { roles: ['admin'] }
@@ -67,19 +85,19 @@ const routes = [
         component: () => import('../views/AdminTimeOffView.vue'),
         meta: { roles: ['admin'] }
       },
+
       {
         path: 'calendar',
         name: 'admin-calendar',
         component: () => import('../views/CalendarView.vue'),
         meta: { roles: ['admin'] }
-      },
-      {
-        path: 'admin/attendance',
-        name: 'admin-attendance',
-        component: () => import('../views/AdminAttendanceView.vue'),
-        meta: { roles: ['admin'] }
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('../views/NotFoundView.vue')
   }
 ]
 

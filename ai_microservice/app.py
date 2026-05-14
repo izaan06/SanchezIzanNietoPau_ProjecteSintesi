@@ -1,5 +1,7 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -7,14 +9,50 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
-app = Flask(__name__)
-CORS(app) # Permet connexions des del frontend Vue.js
+# 1. DEFINICIÓ DE MODELS DE DADES (Pydantic)
+class PredictCostRequest(BaseModel):
+    type: str = "party"
+    assistants: int = 0
+    workers: int = 0
+    hours: int = 0
+    cost_per_hour: float = 0.0
+
+class PredictBudgetRequest(BaseModel):
+    event_type: str = "party"
+    attendees: int = 50
+    location_name: Optional[str] = ""
+    client_budget: Optional[float] = None
+
+class WorkerInfo(BaseModel):
+    id: Optional[int]
+    name: str
+    rating: float = 0.0
+    specialization_tags: List[str] = []
+    availability: bool = True
+
+class RecommendWorkersRequest(BaseModel):
+    event_type: str
+    workers: List[WorkerInfo]
+
+# 2. INICIALITZACIÓ DE L'APP
+app = FastAPI(
+    title="EventAI Prediction API",
+    description="API de microserveis d'IA per a la gestió d'esdeveniments",
+    version="2.0.0"
+)
+
+# Configuració de CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 print("Iniciant entrenament del model d'IA...")
 
-# 1. GENERACIÓ DE DADES SINTÈTIQUES PER L'ENTRENAMENT
-# Com que necessitem un model de regressió lineal actiu, crearem dades 
-# fictícies basades en una lògica realista de costos d'esdeveniments.
+# 3. LÒGICA D'IA
 types = ['wedding', 'conference', 'party', 'corporate']
 data = []
 for _ in range(1000):
@@ -24,95 +62,62 @@ for _ in range(1000):
     hours = np.random.randint(2, 24)
     cost_per_hour = np.random.uniform(15.0, 40.0)
     
-    # Lògica base del cost (Alta Gamma / Realista):
-    # Cost fix de l'esdeveniment + 125€ per assistent (càtering/lloc) + salari treballadors
     type_premium = {'wedding': 8000, 'conference': 3000, 'corporate': 5000, 'party': 1500}[t]
     real_cost = 3000 + (assistants * 125) + (workers * hours * cost_per_hour) + type_premium
-    
-    # Afegim una mica de "soroll" (variància aleatòria) perquè el model l'hagi d'aprendre
     noise = np.random.normal(0, 150) 
-    
     data.append([t, assistants, workers, hours, cost_per_hour, real_cost + noise])
 
 df = pd.DataFrame(data, columns=['type', 'assistants', 'workers', 'hours', 'cost_per_hour', 'cost'])
-
 X = df[['type', 'assistants', 'workers', 'hours', 'cost_per_hour']]
 y = df['cost']
 
-# 2. CREACIÓ DEL MODEL DE REGRESSIÓ LINEAL AMB PIPELINE
-# Transformem el camp de text 'type' en números usant OneHotEncoder
 preprocessor = ColumnTransformer(
-    transformers=[
-        ('cat', OneHotEncoder(handle_unknown='ignore'), ['type'])
-    ],
-    remainder='passthrough' # Mantenim les columnes numèriques tal qual
+    transformers=[('cat', OneHotEncoder(handle_unknown='ignore'), ['type'])],
+    remainder='passthrough'
 )
 
-# Acoblem el preprocessador i l'algorisme de Regressió Lineal
 model = Pipeline(steps=[
     ('preprocessor', preprocessor),
     ('regressor', LinearRegression())
 ])
 
-# Entrenem el model
 model.fit(X, y)
-print("Model entrenat correctament! A punt per fer prediccions.")
+print("Model entrenat correctament! FastAPI llista.")
 
-# 3. ENDPOINTS DE L'API
+# 4. ENDPOINTS DE L'API
 
-@app.route('/predict-cost', methods=['POST'])
-def predict_cost():
+@app.post('/predict-cost')
+async def predict_cost(data: PredictCostRequest):
     try:
-        data = request.get_json()
-        if not data: return jsonify({'success': False, 'error': 'No JSON received'}), 400
-            
-        event_type = data.get('type', 'party')
-        assistants = int(data.get('assistants', 0))
-        workers = int(data.get('workers', 0))
-        hours = int(data.get('hours', 0))
-        cost_per_hour = float(data.get('cost_per_hour', 0.0))
+        input_df = pd.DataFrame([[data.type, data.assistants, data.workers, data.hours, data.cost_per_hour]], 
+                                columns=['type', 'assistants', 'workers', 'hours', 'cost_per_hour'])
         
-        input_data = pd.DataFrame([[event_type, assistants, workers, hours, cost_per_hour]], 
-                                  columns=['type', 'assistants', 'workers', 'hours', 'cost_per_hour'])
-        
-        predicted_cost = model.predict(input_data)[0]
+        predicted_cost = model.predict(input_df)[0]
         final_cost = max(0, predicted_cost)
         
-        return jsonify({
+        return {
             'success': True,
             'predicted_cost': round(final_cost, 2),
             'currency': 'EUR'
-        })
+        }
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        raise HTTPException(status_code=400, detail=str(e))
 
-@app.route('/predict-budget', methods=['POST'])
-def predict_budget():
-    """Predicció ràpida del pressupost per a una sol·licitud de cita."""
+@app.post('/predict-budget')
+async def predict_budget(data: PredictBudgetRequest):
     try:
-        data = request.get_json()
-        event_type = data.get('event_type', 'party').lower()
-        attendees = int(data.get('attendees', 50))
-        location = data.get('location_name', '')
+        event_type = data.event_type.lower()
+        attendees = data.attendees
+        location = data.location_name
         
-        # Lògica heurística d'IA:
-        # 1. Cost Base (el que li costa a l'empresa: menjar, cadires, local, etc.)
-        cost_per_person = 85 # Cost mitjà de càtering i logística
+        cost_per_person = 85
         base_costs = {'wedding': 5000, 'conference': 2500, 'corporate': 3500, 'party': 1000, 'concert': 7000}
         
         operational_cost = base_costs.get(event_type, 1500) + (attendees * cost_per_person)
-        
-        # 2. Margen de Benefici (25% per defecte)
         margin = 0.25
         profit = operational_cost * margin
+        final_price = (operational_cost + profit) * np.random.uniform(0.95, 1.05)
         
-        # 3. Preu Final (el que paga el client)
-        final_price = operational_cost + profit
-        
-        # Afegir variància per simular intel·ligència
-        final_price = final_price * np.random.uniform(0.95, 1.05)
-        
-        # Simulació de geocodificació
         predicted_address = "Adreça no identificada"
         if location:
             if any(word in location.lower() for word in ['barcelona', 'bcn']):
@@ -122,16 +127,14 @@ def predict_budget():
             else:
                 predicted_address = f"{location} (Zona centre)"
 
-        # Feedback de pressupost
         budget_feedback = "Pressupost no especificat."
-        if data.get('client_budget'):
-            c_budget = float(data.get('client_budget'))
-            if c_budget >= final_price:
+        if data.client_budget:
+            if data.client_budget >= final_price:
                 budget_feedback = "El pressupost del client cobreix el preu recomanat."
             else:
-                budget_feedback = f"El pressupost és un {int((1 - c_budget/final_price)*100)}% insuficient."
+                budget_feedback = f"El pressupost és un {int((1 - data.client_budget/final_price)*100)}% insuficient."
 
-        return jsonify({
+        return {
             'success': True,
             'estimated_cost': round(operational_cost, 2),
             'recommended_price': round(final_price, 2),
@@ -143,54 +146,36 @@ def predict_budget():
                 "Es recomana espai amb ventilació natural.",
                 "Incloure servei de seguretat segons la ubicació."
             ]
-        })
+        }
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        raise HTTPException(status_code=400, detail=str(e))
 
-@app.route('/recommend-workers', methods=['POST'])
-def recommend_workers():
-    """Recomana els millors treballadors basant-se en especialitat, puntuació i proximitat."""
+@app.post('/recommend-workers')
+async def recommend_workers(data: RecommendWorkersRequest):
     try:
-        data = request.get_json()
-        event_type = data.get('event_type', '').lower()
-        workers_list = data.get('workers', [])
-        
-        if not workers_list:
-            return jsonify({'success': False, 'error': 'No workers provided'}), 400
-
         scored_workers = []
-        for w in workers_list:
-            score = float(w.get('rating', 0)) * 10
-            
-            # Bonus per especialitat
-            tags = [t.lower() for t in w.get('specialization_tags', [])]
-            if event_type in tags:
-                score += 30
-            
-            # Bonus per disponibilitat
-            if w.get('availability'):
-                score += 20
+        for w in data.workers:
+            score = float(w.rating) * 10
+            tags = [t.lower() for t in w.specialization_tags]
+            if data.event_type.lower() in tags: score += 30
+            if w.availability: score += 20
                 
             scored_workers.append({
-                'id': w.get('id'),
-                'name': w.get('name'),
+                'id': w.id,
+                'name': w.name,
                 'score': score,
                 'reason': f"Coincidència de perfil del {int(score)}%"
             })
             
-        # Ordenar per puntuació descendent
         scored_workers.sort(key=lambda x: x['score'], reverse=True)
-        
-        return jsonify({
-            'success': True,
-            'recommendations': scored_workers[:5] # Retornar els 5 millors
-        })
+        return {'success': True, 'recommendations': scored_workers[:5]}
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        raise HTTPException(status_code=400, detail=str(e))
 
-@app.route('/', methods=['GET'])
-def health_check():
-    return jsonify({"status": "AI Microservice is running!"})
+@app.get('/')
+async def health_check():
+    return {"status": "FastAPI AI Microservice is running!"}
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=5000)

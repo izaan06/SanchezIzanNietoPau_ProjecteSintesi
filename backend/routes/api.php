@@ -11,7 +11,6 @@ use App\Http\Controllers\Api\WorkerDashboardController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TimeOffController;
-use App\Http\Controllers\Api\AttendanceController;
 use Illuminate\Support\Facades\Route;
 
 // --- Rutes públiques ---
@@ -33,11 +32,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // Vacances / Festes
         Route::get('/worker/time-off',    [TimeOffController::class, 'index']);
         Route::post('/worker/time-off',   [TimeOffController::class, 'store']);
-
-        // Fitxatges (Clock-in / Clock-out)
-        Route::get('/worker/attendance/status', [AttendanceController::class, 'status']);
-        Route::post('/worker/attendance/in',     [AttendanceController::class, 'clockIn']);
-        Route::post('/worker/attendance/out',    [AttendanceController::class, 'clockOut']);
     });
 
     // --- Rutes d'ADMIN ---
@@ -70,7 +64,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/time-off',     [TimeOffController::class, 'index']);
         Route::patch('/admin/time-off/{timeOff}', [TimeOffController::class, 'updateStatus']);
 
-        // Gestió de Fitxatges (Admin)
-        Route::get('/admin/attendance', [AttendanceController::class, 'index']);
     });
 });

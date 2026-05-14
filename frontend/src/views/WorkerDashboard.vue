@@ -35,8 +35,7 @@
         </div>
       </div>
 
-      <!-- Sistema de Fitxatge -->
-      <AttendanceCard class="attendance-section" />
+
 
       <!-- Llista d'Esdeveniments Propers -->
       <div class="glass-card events-card">
@@ -90,7 +89,6 @@
           </div>
         </div>
       </div>
-
       <!-- Secció de Vacances / Festa -->
       <div class="glass-card timeoff-card">
         <div class="card-header">
@@ -126,9 +124,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { User, MapPin, CalendarDays } from 'lucide-vue-next'
+import { User, MapPin } from 'lucide-vue-next'
 import api from '../api/axios'
-import AttendanceCard from '../components/AttendanceCard.vue'
 
 const loading = ref(true)
 const error = ref(null)
@@ -177,6 +174,9 @@ const requestTimeOff = async () => {
     submittingTimeOff.value = false
   }
 }
+
+
+
 
 const formatDate = (dateStr, format) => {
   const date = new Date(dateStr)

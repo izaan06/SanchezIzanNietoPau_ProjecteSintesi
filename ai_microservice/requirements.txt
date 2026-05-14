@@ -1,5 +1,6 @@
-Flask
-flask-cors
+fastapi
+uvicorn
 scikit-learn
 pandas
 numpy
+pydantic

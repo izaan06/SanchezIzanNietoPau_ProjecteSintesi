@@ -1,6 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-card">
+      <router-link to="/" class="back-home">← Tornar a la portada</router-link>
       <div class="login-header">
         <h2 class="login-title">{{ isRegisterMode ? 'Crea un compte' : 'Benvingut de nou' }}</h2>
         <p class="login-subtitle">
@@ -95,13 +96,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import api from '../api/axios';
 
 const router = useRouter();
+const route = useRoute();
 
 const isRegisterMode = ref(false);
+
+onMounted(() => {
+  if (route.query.mode === 'register') {
+    isRegisterMode.value = true;
+  }
+});
 
 const name = ref('');
 const email = ref('');
@@ -228,6 +236,20 @@ const handleLogin = async () => {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 420px;
+  position: relative;
+}
+
+.back-home {
+  display: inline-block;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s;
+}
+
+.back-home:hover {
+  color: #3b82f6;
 }
 
 .login-header {
