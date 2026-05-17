@@ -1,7 +1,12 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <router-link to="/" class="back-home">← Tornar a la portada</router-link>
+      <div class="back-home-wrapper">
+        <router-link to="/" class="back-home">
+          <ArrowLeft class="icon-sm" />
+          Tornar a inici
+        </router-link>
+      </div>
       <div class="login-header">
         <h2 class="login-title">{{ isRegisterMode ? 'Crea un compte' : 'Benvingut de nou' }}</h2>
         <p class="login-subtitle">
@@ -98,6 +103,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { ArrowLeft } from 'lucide-vue-next';
 import api from '../api/axios';
 
 const router = useRouter();
@@ -239,17 +245,45 @@ const handleLogin = async () => {
   position: relative;
 }
 
+.back-home-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
 .back-home {
-  display: inline-block;
-  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  padding: 0.5rem 1.25rem;
+  border-radius: 30px;
   text-decoration: none;
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-  transition: color 0.2s;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(96, 165, 250, 0.1);
 }
 
 .back-home:hover {
-  color: #3b82f6;
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(96, 165, 250, 0.2);
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.back-home:hover .icon-sm {
+  transform: translateX(-4px);
 }
 
 .login-header {

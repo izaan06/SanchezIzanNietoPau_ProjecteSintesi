@@ -1,12 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '../components/MainLayout.vue'
 
+// ==========================================
+// DEFINICIÓ DE RUTES (VUE ROUTER)
+// ==========================================
+// Cada objecte representa una ruta (URL) i quin component s'ha de mostrar a la pantalla.
 const routes = [
   {
     path: '/',
     name: 'landing',
-    component: () => import('../views/LandingView.vue'),
-    meta: { requiresGuest: true }
+    component: () => import('../views/LandingView.vue'), // Importació mandrosa (lazy load) per optimitzar el rendiment
+    meta: { requiresGuest: true } // Només accessible si NO has iniciat sessió
   },
   {
     path: '/login',
@@ -29,8 +33,9 @@ const routes = [
   {
     path: '/app',
     component: MainLayout,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true }, // Totes les rutes dins de /app requereixen estar loguejat
     children: [
+      // --- RUTES ADMINISTRADOR ---
       {
         path: 'dashboard',
         name: 'dashboard',
@@ -106,7 +111,10 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guards
+// ==========================================
+// GUÀRDIES DE NAVEGACIÓ (Navigation Guards)
+// ==========================================
+// Aquest codi s'executa ABANS de cada canvi de pàgina. Actua com un vigilant de seguretat.
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const role = localStorage.getItem('role')
@@ -117,14 +125,15 @@ router.beforeEach((to, from, next) => {
     return next({ name: 'login' })
   }
 
-  // 2. Si la ruta és per a convidats (Login/Register) i ja està autenticat -> Redirigir a la seva home
+  // 2. Si la ruta és per a convidats (ex: anar al Login) però l'usuari ja està loguejat -> L'enviem al seu panell principal
   if (to.meta.requiresGuest && isAuthenticated) {
     if (role === 'admin') return next({ name: 'dashboard' })
     if (role === 'worker') return next({ name: 'worker-dashboard' })
     return next({ name: 'client-portal' })
   }
 
-  // 3. Comprovació de Rols
+  // 3. Comprovació de Rols (Control d'Accés)
+  // Si la ruta té definida una llista de rols permesos (to.meta.roles) i el rol de l'usuari no hi és...
   if (to.meta.roles && !to.meta.roles.includes(role)) {
     // Evitar bucle infinit: si ja anem a la ruta de destí, no redirigir de nou
     let targetName = 'client-portal'

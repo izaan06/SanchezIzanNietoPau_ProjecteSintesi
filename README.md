@@ -23,7 +23,7 @@ El projecte està estructurat com un monorepositori amb tres components principa
 ### **Backend (API)**
 *   **Framework:** Laravel 11/12
 *   **Llenguatge:** PHP
-*   **Base de dades:** MySQL
+*   **Base de dades:** MariaDB
 *   **Autenticació:** Laravel Sanctum
 *   **Eines:** Composer, Artisan
 
@@ -31,14 +31,14 @@ El projecte està estructurat com un monorepositori amb tres components principa
 *   **Framework:** Vue.js 3 (Composition API)
 *   **Eina de construcció:** Vite
 *   **Estils:** CSS Modern (Glassmorphism, Responsive Design)
-*   **Estat:** Pinia / Vue Router
+*   **Estat:** Vue Router / Composition API (Reactive)
 *   **Icones:** Lucide Vue / Heroicons
 
 ### **Microservei d'IA**
 *   **Llenguatge:** Python 3.x
-*   **Framework:** Flask
+*   **Framework:** FastAPI
 *   **IA/ML:** Scikit-learn (Linear Regression), Pandas, NumPy
-*   **Servidor:** Flask Development Server
+*   **Servidor:** Uvicorn
 
 ---
 
@@ -49,7 +49,7 @@ El projecte està estructurat com un monorepositori amb tres components principa
 *   Composer
 *   Node.js & npm
 *   Python 3.x
-*   MySQL
+*   MariaDB
 
 ### **Passos per a la instal·lació**
 
@@ -78,7 +78,7 @@ El projecte està estructurat com un monorepositori amb tres components principa
 4.  **Configuració del Microservei d'IA:**
     ```bash
     cd ../ai_microservice
-    pip install flask flask-cors pandas numpy scikit-learn
+    pip install -r requirements.txt
     ```
 
 ---

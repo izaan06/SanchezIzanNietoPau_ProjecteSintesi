@@ -9,7 +9,10 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
+# ==========================================
 # 1. DEFINICIÓ DE MODELS DE DADES (Pydantic)
+# ==========================================
+# Aquests models validen automàticament que les dades JSON rebudes des del Backend siguin correctes.
 class PredictCostRequest(BaseModel):
     type: str = "party"
     assistants: int = 0
@@ -34,14 +37,17 @@ class RecommendWorkersRequest(BaseModel):
     event_type: str
     workers: List[WorkerInfo]
 
-# 2. INICIALITZACIÓ DE L'APP
+# ==========================================
+# 2. INICIALITZACIÓ DE L'APP (FastAPI)
+# ==========================================
 app = FastAPI(
     title="EventAI Prediction API",
     description="API de microserveis d'IA per a la gestió d'esdeveniments",
     version="2.0.0"
 )
 
-# Configuració de CORS
+# Configuració de CORS (Intercanvi de Recursos d'Origen Creuat)
+# Permet que el Backend de Laravel o Vue.js es comuniquin amb aquest servidor sense ser bloquejats.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -52,8 +58,12 @@ app.add_middleware(
 
 print("Iniciant entrenament del model d'IA...")
 
-# 3. LÒGICA D'IA
-types = ['wedding', 'conference', 'party', 'corporate']
+# ==========================================
+# 3. LÒGICA D'IA (Entrenament del model)
+# ==========================================
+# IMPORTANT: Actualment s'està generant dades i entrenant el model cada cop que s'engega el servidor.
+# Per a producció, el model s'hauria d'entrenar un cop, guardar-lo en un fitxer .pkl i només carregar-lo aquí.
+types = ['boda', 'corporatiu', 'aniversari', 'festa privada', 'concert']
 data = []
 for _ in range(1000):
     t = np.random.choice(types)
@@ -62,7 +72,7 @@ for _ in range(1000):
     hours = np.random.randint(2, 24)
     cost_per_hour = np.random.uniform(15.0, 40.0)
     
-    type_premium = {'wedding': 8000, 'conference': 3000, 'corporate': 5000, 'party': 1500}[t]
+    type_premium = {'boda': 8000, 'corporatiu': 5000, 'aniversari': 1500, 'festa privada': 2000, 'concert': 10000}[t]
     real_cost = 3000 + (assistants * 125) + (workers * hours * cost_per_hour) + type_premium
     noise = np.random.normal(0, 150) 
     data.append([t, assistants, workers, hours, cost_per_hour, real_cost + noise])
@@ -84,10 +94,16 @@ model = Pipeline(steps=[
 model.fit(X, y)
 print("Model entrenat correctament! FastAPI llista.")
 
-# 4. ENDPOINTS DE L'API
+# ==========================================
+# 4. ENDPOINTS DE L'API (Rutes)
+# ==========================================
 
 @app.post('/predict-cost')
 async def predict_cost(data: PredictCostRequest):
+    """
+    Endpoint per predir el cost de producció d'un esdeveniment
+    utilitzant el model de regressió lineal entrenat prèviament.
+    """
     try:
         input_df = pd.DataFrame([[data.type, data.assistants, data.workers, data.hours, data.cost_per_hour]], 
                                 columns=['type', 'assistants', 'workers', 'hours', 'cost_per_hour'])
@@ -105,13 +121,23 @@ async def predict_cost(data: PredictCostRequest):
 
 @app.post('/predict-budget')
 async def predict_budget(data: PredictBudgetRequest):
+    """
+    Endpoint per generar un pressupost estimat i donar recomanacions intel·ligents.
+    Utilitza lògica de negoci i condicions (sistema expert) en lloc de ML pur.
+    """
     try:
         event_type = data.event_type.lower()
         attendees = data.attendees
         location = data.location_name
         
         cost_per_person = 85
-        base_costs = {'wedding': 5000, 'conference': 2500, 'corporate': 3500, 'party': 1000, 'concert': 7000}
+        base_costs = {
+            'boda': 5000, 
+            'corporatiu': 3500, 
+            'aniversari': 1000, 
+            'festa privada': 1500, 
+            'concert': 7000
+        }
         
         operational_cost = base_costs.get(event_type, 1500) + (attendees * cost_per_person)
         margin = 0.25

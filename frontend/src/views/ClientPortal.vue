@@ -889,8 +889,14 @@ input:focus, select:focus, textarea:focus {
 
 .budget-input-wrapper {
   position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  width: 250px; /* Fixem el tamany del contenidor */
+}
+
+.budget-input-wrapper input {
+  width: 100%; /* L'input ocupa el tamany del contenidor */
+  padding-right: 3rem; /* Espai pel símbol de l'euro */
 }
 
 .currency-label {
