@@ -15,7 +15,6 @@
             <th>Nom</th>
             <th>Email</th>
             <th>Rol Actual</th>
-            <th>Vincle Treballador</th>
             <th>Canviar Rol</th>
             <th>Accions</th>
           </tr>
@@ -28,10 +27,7 @@
             <td>
               <span :class="['role-pill', user.role]">{{ user.role.toUpperCase() }}</span>
             </td>
-            <td>
-              <span v-if="user.worker" class="link-success">✓ Vinculat</span>
-              <span v-else class="link-none">Sense vincle</span>
-            </td>
+
             <td>
               <select 
                 :value="user.role" 
@@ -162,8 +158,7 @@ onMounted(fetchUsers)
 .role-pill.worker { background: rgba(16, 185, 129, 0.2); color: #34d399; }
 .role-pill.client { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
 
-.link-success { color: #10b981; font-size: 0.85rem; font-weight: 600; }
-.link-none { color: var(--text-muted); font-size: 0.85rem; font-style: italic; }
+
 
 .role-select {
   background: rgba(15, 23, 42, 0.6);

@@ -3,7 +3,7 @@
     <!-- Vista de Assignació de Treballadors -->
     <div v-if="selectedEventId" class="worker-assignment-container glass-card">
       <div class="header-back">
-        <button @click="selectedEventId = null" class="btn-text">
+        <button @click="selectedEventId = null" class="btn-back-elegant">
           <ArrowLeft class="icon-sm" /> Tornar a Esdeveniments
         </button>
       </div>
@@ -17,9 +17,6 @@
           <h2>Gestió d'Esdeveniments</h2>
           <p class="subtitle">Administra, planifica i controla la rendibilitat dels teus esdeveniments.</p>
         </div>
-        <button @click="openCreateForm" class="btn-primary">
-          <Plus class="icon-sm" /> Nou Esdeveniment
-        </button>
       </div>
 
       <!-- Missatges de Feedback -->
@@ -33,7 +30,7 @@
           Carregant esdeveniments...
         </div>
         <div v-else-if="events.length === 0" class="empty-state">
-          No hi ha cap esdeveniment. Comença creant-ne un!
+          No hi ha cap esdeveniment actiu o planificat en aquest moment.
         </div>
         <div v-else class="table-responsive glass-card no-padding">
           <table class="events-table">
@@ -141,14 +138,7 @@
                 <input v-model="formData.type" type="text" placeholder="Boda, Corporatiu, etc." />
               </div>
             </div>
-            <div class="form-group" v-if="!isEditing">
-              <label>Client</label>
-              <select v-model="formData.client_id" required>
-                <option v-for="client in clients" :key="client.id" :value="client.id">
-                  {{ client.name }}
-                </option>
-              </select>
-            </div>
+
             
             <div class="form-actions-full">
               <button type="submit" class="btn btn-primary btn-block" :disabled="isLoading">
@@ -259,14 +249,37 @@
                   </div>
                 </div>
 
-                <div class="ai-recs" v-if="detailEvent.appointment_request.ai_recommendations">
-                  <p class="recs-label">Recomanacions estratègiques:</p>
-                  <ul class="recs-list">
-                    <li v-for="(rec, i) in detailEvent.appointment_request.ai_recommendations" :key="i">
-                      <span class="bullet">✦</span>
-                      <span class="text">{{ rec }}</span>
-                    </li>
-                  </ul>
+                <div class="ai-recs-section" v-if="detailEvent.appointment_request.ai_recommendations && detailEvent.appointment_request.ai_recommendations.length">
+                  <h4 class="ai-recs-title">
+                    <Sparkles class="icon-xs ai-sparkle-icon" />
+                    <span>Recomanacions i Personal IA</span>
+                  </h4>
+                  <div class="ai-recs-grid">
+                    <div v-for="(rec, i) in detailEvent.appointment_request.ai_recommendations" :key="i" class="ai-rec-card">
+                      <!-- Check if worker recommendation -->
+                      <div v-if="isWorkerRec(rec)" class="ai-worker-rec-content">
+                        <div class="worker-rec-left">
+                          <div class="worker-rec-avatar">
+                            <Users class="icon-sm" />
+                          </div>
+                          <div class="worker-rec-info">
+                            <div class="worker-rec-name">{{ getRecValue(rec, 'name') }}</div>
+                            <div class="worker-rec-reason">{{ getRecValue(rec, 'reason') }}</div>
+                          </div>
+                        </div>
+                        <div class="worker-rec-right">
+                          <span class="worker-rec-score" :class="getScoreClass(getRecValue(rec, 'score'))">
+                            {{ getRecValue(rec, 'score') }}% Match
+                          </span>
+                        </div>
+                      </div>
+                      <!-- Else standard text recommendation -->
+                      <div v-else class="ai-text-rec-content">
+                        <span class="ai-text-bullet">✦</span>
+                        <span class="ai-text-body">{{ rec }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -323,6 +336,46 @@ import {
 import api from '../api/axios';
 import WorkerAssignment from '../components/WorkerAssignment.vue';
 
+// --- UTILS PER RECOMANACIONS DE TREBALLADORS IA ---
+const isWorkerRec = (rec) => {
+  if (!rec) return false
+  if (typeof rec === 'object') {
+    return rec.hasOwnProperty('score') || rec.hasOwnProperty('name')
+  }
+  if (typeof rec === 'string') {
+    try {
+      const parsed = JSON.parse(rec)
+      return parsed && (parsed.hasOwnProperty('score') || parsed.hasOwnProperty('name'))
+    } catch (e) {
+      return false
+    }
+  }
+  return false
+}
+
+const getRecValue = (rec, field) => {
+  if (!rec) return ''
+  if (typeof rec === 'object') {
+    return rec[field] || ''
+  }
+  if (typeof rec === 'string') {
+    try {
+      const parsed = JSON.parse(rec)
+      return parsed[field] || ''
+    } catch (e) {
+      return ''
+    }
+  }
+  return ''
+}
+
+const getScoreClass = (score) => {
+  const s = parseInt(score)
+  if (s >= 80) return 'score-high'
+  if (s >= 50) return 'score-medium'
+  return 'score-low'
+}
+
 // --- ESTATS DE LA VISTA ---
 const events = ref([]);           // Llista completa d'esdeveniments
 const isLoading = ref(false);     // Indicador de càrrega global
@@ -346,19 +399,7 @@ const formData = ref({
   client_id: null
 });
 
-const clients = ref([]);
 
-/**
- * Obté la llista de clients per al desplegable del formulari.
- */
-const fetchClients = async () => {
-  try {
-    const response = await api.get('/clients');
-    clients.value = response.data;
-  } catch (error) {
-    console.error('Error carregant clients:', error);
-  }
-};
 
 /**
  * Calcula quantes tasques s'han completat del total.
@@ -401,7 +442,6 @@ const fetchEvents = async () => {
 
 onMounted(() => {
   fetchEvents();
-  fetchClients();
 });
 
 const handleManageWorkers = (id) => {
@@ -418,7 +458,7 @@ const openCreateForm = () => {
     location: '',
     type: '',
     assistants: 0,
-    client_id: clients.value[0]?.id || null
+    client_id: null
   };
   showForm.value = true;
 };
@@ -919,5 +959,185 @@ const truncate = (text, length) => {
   border-color: rgba(239, 68, 68, 0.4);
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); 
   transform: rotate(90deg) scale(1.1); 
+}
+
+/* --- ELEGANT BACK BUTTON --- */
+.btn-back-elegant {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.4rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.btn-back-elegant:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: white;
+  transform: translateX(-4px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+}
+
+.btn-back-elegant svg {
+  transition: transform 0.3s ease;
+  color: var(--accent-primary);
+}
+
+.btn-back-elegant:hover svg {
+  transform: translateX(-4px);
+}
+
+/* --- AI RECOMMENDATIONS SLICK LAYOUT --- */
+.ai-recs-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-recs-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.ai-sparkle-icon {
+  color: var(--accent-primary);
+  filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.5));
+}
+
+.ai-recs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ai-rec-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.ai-rec-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Worker rec styles */
+.ai-worker-rec-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.worker-rec-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.worker-rec-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #818cf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.worker-rec-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.worker-rec-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.worker-rec-reason {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.worker-rec-right {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.worker-rec-score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.score-high {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.score-medium {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.score-low {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Text rec styles */
+.ai-text-rec-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.ai-text-bullet {
+  color: var(--accent-secondary);
+  font-weight: bold;
+}
+
+.ai-text-body {
+  line-height: 1.4;
 }
 </style>

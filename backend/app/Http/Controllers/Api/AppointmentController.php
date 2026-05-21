@@ -136,12 +136,21 @@ class AppointmentController extends Controller
 
             if ($aiResponse->successful()) {
                 $recommendations = $aiResponse->json('recommendations');
+                
+                // Agafar només el Top 3
+                $top3Recommendations = array_slice($recommendations, 0, 3);
+                
                 // Assignar els 3 millors automàticament
-                foreach (array_slice($recommendations, 0, 3) as $rec) {
+                foreach ($top3Recommendations as $rec) {
                     // Evitar duplicats si ja estiguessin assignats
                     $event->workers()->syncWithoutDetaching([$rec['id'] => ['hours' => 8]]);
                 }
-                $appointment->update(['ai_recommendations' => $recommendations]);
+                
+                // Conservar les recomanacions estratègiques existents i afegir-hi NOMÉS els 3 assignats
+                $existingRecs = $appointment->ai_recommendations ?? [];
+                $mergedRecs = array_merge($existingRecs, $top3Recommendations);
+                
+                $appointment->update(['ai_recommendations' => $mergedRecs]);
             }
         } catch (\Exception $e) {
             \Log::error("Error IA en assignació: " . $e->getMessage());

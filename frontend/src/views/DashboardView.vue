@@ -249,6 +249,7 @@ const formatStatusLabel = (s) => {
 .panel { padding: 2rem; display: flex; flex-direction: column; height: 500px; }
 .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 .panel-header h3 { font-size: 1.1rem; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.75rem; }
+.panel-body { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 
 .chart-container { flex: 1; position: relative; }
 .chart-container-mini { flex: 1; padding: 1rem 0; }

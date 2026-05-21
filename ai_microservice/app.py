@@ -27,11 +27,12 @@ class PredictBudgetRequest(BaseModel):
     client_budget: Optional[float] = None
 
 class WorkerInfo(BaseModel):
-    id: Optional[int]
-    name: str
-    rating: float = 0.0
-    specialization_tags: List[str] = []
-    availability: bool = True
+    id: Optional[int] = None
+    name: Optional[str] = ""
+    role: Optional[str] = ""
+    rating: Optional[float] = 5.0
+    specialization_tags: Optional[List[str]] = []
+    availability: Optional[bool] = True
 
 class RecommendWorkersRequest(BaseModel):
     event_type: str
@@ -180,16 +181,32 @@ async def predict_budget(data: PredictBudgetRequest):
 async def recommend_workers(data: RecommendWorkersRequest):
     try:
         scored_workers = []
+        event_type = data.event_type.lower() if data.event_type else ""
+        
         for w in data.workers:
-            score = float(w.rating) * 10
-            tags = [t.lower() for t in w.specialization_tags]
-            if data.event_type.lower() in tags: score += 30
-            if w.availability: score += 20
+            rating = float(w.rating) if w.rating is not None else 5.0
+            score = rating * 10
+            
+            tags = [t.lower() for t in w.specialization_tags] if w.specialization_tags else []
+            role = w.role.lower() if w.role else ""
+            
+            if event_type in tags: 
+                score += 30
+            elif event_type in role or role in event_type:
+                score += 25
+            else:
+                variance = (w.id * 7) % 20 if w.id else 0
+                score += variance
+                
+            if w.availability: 
+                score += 20
+                
+            score = min(98, score)
                 
             scored_workers.append({
                 'id': w.id,
                 'name': w.name,
-                'score': score,
+                'score': int(score),
                 'reason': f"Coincidència de perfil del {int(score)}%"
             })
             

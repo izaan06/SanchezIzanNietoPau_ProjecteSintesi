@@ -79,9 +79,11 @@
   font-family: 'Outfit', sans-serif;
   background-color: #0f172a;
   color: white;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- Navbar --- */
@@ -165,9 +167,10 @@
 .hero {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  padding: 5rem 5% 10rem;
+  padding: 0 5%;
   align-items: center;
   gap: 4rem;
+  flex: 1;
 }
 
 .hero-content {

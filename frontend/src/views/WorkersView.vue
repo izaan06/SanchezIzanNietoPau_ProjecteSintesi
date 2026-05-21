@@ -13,18 +13,7 @@
         <h3>{{ isEditing ? 'Editar Treballador' : 'Nou Treballador' }}</h3>
         
         <form @submit.prevent="saveWorker" class="form-compact">
-          <div class="form-group">
-            <label>Vincular a un Usuari existent (Opcional)</label>
-            <select v-model="currentWorker.user_id">
-              <option :value="null">-- Cap (Sense compte d'usuari) --</option>
-              <option v-for="user in availableUsers" :key="user.id" :value="user.id">
-                {{ user.name }} ({{ user.email }})
-              </option>
-              <option v-if="isEditing && currentWorker.user" :value="currentWorker.user_id">
-                Usuari actual: {{ currentWorker.user.name }}
-              </option>
-            </select>
-          </div>
+
 
           <div class="form-grid">
             <div class="form-group">
@@ -86,7 +75,6 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Usuari Vinculat</th>
             <th>Nom Complet</th>
             <th>Rol / Especialitat</th>
             <th>Cost/h</th>
@@ -97,12 +85,6 @@
         <tbody>
           <tr v-for="worker in workers" :key="worker.id">
             <td>#{{ worker.id }}</td>
-            <td>
-              <span v-if="worker.user_id" class="user-link">
-                <UserCheck class="icon-xs" /> {{ worker.user_id }}
-              </span>
-              <span v-else class="user-none">Sense vincle</span>
-            </td>
             <td class="primary-col">{{ worker.name }}</td>
             <td><span class="role-badge">{{ worker.role }}</span></td>
             <td>{{ worker.cost_per_hour }} €/h</td>
@@ -127,11 +109,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Plus, Edit2, Trash2, UserCheck } from 'lucide-vue-next'
+import { Plus, Edit2, Trash2 } from 'lucide-vue-next'
 import api from '../api/axios'
 
 const workers = ref([])
-const availableUsers = ref([])
+
 const loading = ref(true)
 const showModal = ref(false)
 const isEditing = ref(false)
@@ -170,26 +152,17 @@ const fetchWorkers = async () => {
   }
 }
 
-const fetchAvailableUsers = async () => {
-  try {
-    const res = await api.get('/workers/available-users')
-    availableUsers.value = res.data
-  } catch (err) {
-    console.error(err)
-  }
-}
+
 
 const openCreateModal = () => {
   isEditing.value = false
   currentWorker.value = { id: null, user_id: null, name: '', role: '', cost_per_hour: 0, availability: true }
-  fetchAvailableUsers()
   showModal.value = true
 }
 
 const editWorker = (worker) => {
   isEditing.value = true
   currentWorker.value = { ...worker }
-  fetchAvailableUsers()
   showModal.value = true
 }
 

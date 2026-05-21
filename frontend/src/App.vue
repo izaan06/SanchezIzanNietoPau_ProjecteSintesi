@@ -31,8 +31,8 @@
   --glass-border: rgba(255, 255, 255, 0.05);
 }
 
-html {
-  font-size: 14px;
+:root {
+  font-size: 16px !important;
 }
 
 * {
