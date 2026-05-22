@@ -409,29 +409,35 @@ onMounted(fetchAppointments)
 }
 
 .budget-comparison {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
   margin-bottom: 1.5rem;
   background: rgba(0,0,0,0.2);
-  padding: 1rem;
-  border-radius: 10px;
+  padding: 1.25rem;
+  border-radius: 12px;
 }
 
 .budget-item {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .budget-item .label {
   font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.4rem;
 }
 
-.ai-budget { font-size: 1.5rem; font-weight: 800; color: white; }
-.profit-value { font-size: 1.5rem; font-weight: 800; color: #10b981; }
-.client-budget { font-size: 1.5rem; font-weight: 800; }
+.ai-budget, .profit-value, .client-budget { 
+  font-size: 1.25rem; 
+  font-weight: 800; 
+  word-wrap: break-word;
+}
+.ai-budget { color: white; }
+.profit-value { color: #10b981; }
 
 .budget-ok { color: #10b981; }
 .budget-warning { color: #f59e0b; }

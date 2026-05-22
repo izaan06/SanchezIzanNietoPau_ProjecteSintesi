@@ -86,7 +86,7 @@
               </div>
               <div class="form-group">
                 <label>Telèfon</label>
-                <input v-model="formData.phone" type="text" placeholder="+34 600 000 000" />
+                <input v-model="formData.phone" type="tel" maxlength="9" @input="formData.phone = formData.phone.replace(/[^0-9]/g, '')" placeholder="600000000" />
               </div>
             </div>
             <div class="form-group">

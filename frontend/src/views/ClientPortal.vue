@@ -98,7 +98,7 @@
                 </div>
                 <div class="form-group">
                   <label>Telèfon de Contacte</label>
-                  <input v-model="form.phone" type="tel" placeholder="600 000 000" />
+                  <input v-model="form.phone" type="tel" maxlength="9" @input="form.phone = form.phone.replace(/[^0-9]/g, '')" placeholder="600000000" />
                 </div>
               </div>
               <div class="form-group">
@@ -209,6 +209,7 @@
 
             <div class="form-footer">
               <p class="privacy-note">En enviar aquest formulari, la nostra IA calcularà els teus costos operatius al moment.</p>
+              <br>
               <button type="submit" class="btn-submit" :disabled="submitting">
                 <span v-if="submitting" class="loader-sm"></span>
                 <span v-else>Calcular i Enviar Sol·licitud</span>
@@ -970,16 +971,96 @@ input:focus, select:focus, textarea:focus {
 .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 
 .status-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2rem;
-  border-left: 5px solid #64748b;
+  border-left: 6px solid #64748b;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.status-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1.5rem;
+}
+
+.status-header h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(100, 116, 139, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
 .status-card.accepted { border-left-color: #10b981; }
+.status-card.accepted .status-badge { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
 .status-card.pending { border-left-color: #f59e0b; }
+.status-card.pending .status-badge { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
 .status-card.rejected { border-left-color: #ef4444; }
+.status-card.rejected .status-badge { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+.status-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.status-body p {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.ai-preview {
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  padding: 1.25rem;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #e0e7ff;
+  font-size: 1.1rem;
+}
+
+.ai-preview strong {
+  color: #fff;
+  font-size: 1.25rem;
+}
+
+.ai-preview .icon-xs {
+  color: #8b5cf6;
+}
 
 .menu-card {
   overflow: hidden;
